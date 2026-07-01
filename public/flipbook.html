@@ -245,6 +245,27 @@
   @media (prefers-reduced-motion: reduce){
     .flip-page{ transition:none !important; }
   }
+
+  /* ---------- admin gate ---------- */
+  body:not(.is-admin) #dropzone{ display:none !important; }
+  body:not(.is-admin) .book-del{ display:none !important; }
+  body:not(.is-admin) .shelf-label .ro-note{ display:inline; }
+  .shelf-label .ro-note{ display:none; color:#7C7361; font-weight:400; letter-spacing:0.05em; text-transform:none; margin-left:6px; }
+  .admin-footer{
+    text-align:center; margin:30px 0 10px; font-size:11.5px; letter-spacing:0.15em;
+    text-transform:uppercase; color:#5C5546;
+  }
+  .admin-footer button{
+    background:none; border:none; color:#8A7F68; font:inherit; letter-spacing:inherit;
+    text-transform:inherit; cursor:pointer; padding:6px 10px;
+  }
+  .admin-footer button:hover{ color:var(--gold-soft); }
+  .admin-badge{ display:none; }
+  body.is-admin .admin-badge{
+    display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px;
+    background:var(--gold); color:#241a06; font-size:10.5px; font-weight:700;
+    letter-spacing:0.08em; vertical-align:middle;
+  }
 </style>
 </head>
 <body>
