@@ -1016,6 +1016,38 @@ function seedEmbeddedBooks(){
   });
 }
 
+// ---------- admin mode (chỉ chủ sở hữu mới upload/xóa) ----------
+// Đổi mật khẩu ở dòng dưới. Đây là cổng khóa phía client cho site tĩnh — đủ để
+// ngăn khách xóa/upload trên trình duyệt của họ, không phải bảo mật tuyệt đối.
+const ADMIN_PASSWORD = 'banadmin@2026';
+const ADMIN_FLAG_KEY = 'flipbook-admin-unlocked';
+function isAdminUnlocked(){
+  try{ return localStorage.getItem(ADMIN_FLAG_KEY) === '1'; }catch(_){ return false; }
+}
+function applyAdminMode(){
+  document.body.classList.toggle('is-admin', isAdminUnlocked());
+  const btn = document.getElementById('adminToggleBtn');
+  if(btn) btn.textContent = isAdminUnlocked() ? 'Thoát chế độ quản trị' : 'Quản trị';
+}
+document.getElementById('adminToggleBtn')?.addEventListener('click', () => {
+  if(isAdminUnlocked()){
+    try{ localStorage.removeItem(ADMIN_FLAG_KEY); }catch(_){ }
+    applyAdminMode();
+    renderShelf();
+    return;
+  }
+  const pwd = prompt('Nhập mật khẩu quản trị để chỉnh sửa giá sách:');
+  if(pwd === null) return;
+  if(pwd === ADMIN_PASSWORD){
+    try{ localStorage.setItem(ADMIN_FLAG_KEY, '1'); }catch(_){ }
+    applyAdminMode();
+    renderShelf();
+  } else {
+    alert('Mật khẩu không đúng.');
+  }
+});
+applyAdminMode();
+
 (async function init(){
   showLoading('Đang mở giá sách…');
   storageMode = (await persistentStorageHealthy()) ? 'persistent' : 'memory';
