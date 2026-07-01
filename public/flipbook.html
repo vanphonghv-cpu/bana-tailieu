@@ -949,12 +949,113 @@ function programmaticFlip(direction){
   });
 }
 
+// ---------- zoom / pan ----------
+let zoomState = { scale:1, panX:0, panY:0 };
+let hiResBoost = false;
+let boostTimer = null;
+const activePointers = new Map(); // pointerId -> {x,y}
+let pinchStart = null;
+let panStart = null;
+const zoomInBtn = $('zoomIn'), zoomOutBtn = $('zoomOut');
+
+function applyZoomTransform(){
+  bookFrame.style.transform = `translate(${zoomState.panX}px, ${zoomState.panY}px) scale(${zoomState.scale})`;
+  bookFrame.classList.toggle('zoomed', zoomState.scale !== 1);
+  readerStage.classList.toggle('is-zoomed', zoomState.scale > 1.02);
+  zoomOutBtn.disabled = zoomState.scale <= 1.02;
+  zoomInBtn.disabled = zoomState.scale >= 3.95;
+}
+function clampPan(){
+  const stageRect = readerStage.getBoundingClientRect();
+  const w = bookFrame.clientWidth * zoomState.scale;
+  const h = bookFrame.clientHeight * zoomState.scale;
+  const maxX = Math.max(0, (w - stageRect.width)/2 + 30);
+  const maxY = Math.max(0, (h - stageRect.height)/2 + 30);
+  zoomState.panX = Math.min(maxX, Math.max(-maxX, zoomState.panX));
+  zoomState.panY = Math.min(maxY, Math.max(-maxY, zoomState.panY));
+}
+function setZoom(newScale, focalX, focalY){
+  const prev = zoomState.scale;
+  newScale = Math.min(4, Math.max(1, newScale));
+  if(focalX!=null && focalY!=null && prev !== newScale){
+    const stageRect = readerStage.getBoundingClientRect();
+    const cx = focalX - stageRect.left - stageRect.width/2;
+    const cy = focalY - stageRect.top - stageRect.height/2;
+    const k = newScale / prev;
+    zoomState.panX = cx + (zoomState.panX - cx) * k;
+    zoomState.panY = cy + (zoomState.panY - cy) * k;
+  }
+  zoomState.scale = newScale;
+  if(newScale <= 1.01){ zoomState.scale = 1; zoomState.panX = 0; zoomState.panY = 0; }
+  clampPan();
+  applyZoomTransform();
+  scheduleResolutionBoost();
+}
+function scheduleResolutionBoost(){
+  const shouldBoost = zoomState.scale > 1.4;
+  if(shouldBoost === hiResBoost) return;
+  clearTimeout(boostTimer);
+  boostTimer = setTimeout(() => {
+    hiResBoost = shouldBoost;
+    if(currentPdfDoc){
+      pageImageCache.clear();
+      renderCurrentPage();
+    }
+  }, 160);
+}
+function resetZoom(){
+  zoomState = { scale:1, panX:0, panY:0 };
+  hiResBoost = false;
+  applyZoomTransform();
+}
+zoomInBtn.addEventListener('click', () => setZoom(zoomState.scale * 1.5));
+zoomOutBtn.addEventListener('click', () => setZoom(zoomState.scale / 1.5));
+
+// ---------- unified pointer: pinch, pan (when zoomed), or flip drag ----------
 readerStage.addEventListener('pointerdown', (e) => {
+  activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  try { readerStage.setPointerCapture(e.pointerId); } catch(_){}
+  if(activePointers.size >= 2){
+    drag = null; panStart = null;
+    const pts = [...activePointers.values()];
+    const a = pts[0], b = pts[1];
+    pinchStart = {
+      dist: Math.hypot(a.x-b.x, a.y-b.y) || 1,
+      scale: zoomState.scale,
+      panX: zoomState.panX, panY: zoomState.panY,
+      cx: (a.x+b.x)/2, cy: (a.y+b.y)/2,
+    };
+    return;
+  }
+  if(zoomState.scale > 1){
+    panStart = { x:e.clientX, y:e.clientY, panX:zoomState.panX, panY:zoomState.panY };
+    return;
+  }
   if(!currentPdfDoc) return;
   drag = { startX: e.clientX, direction: null, width: bookFrame.clientWidth };
-  readerStage.setPointerCapture(e.pointerId);
 });
 readerStage.addEventListener('pointermove', (e) => {
+  if(!activePointers.has(e.pointerId)) return;
+  activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if(pinchStart && activePointers.size >= 2){
+    const pts = [...activePointers.values()];
+    const a = pts[0], b = pts[1];
+    const dist = Math.hypot(a.x-b.x, a.y-b.y);
+    const newScale = Math.min(4, Math.max(1, pinchStart.scale * (dist / pinchStart.dist)));
+    // Restore focal state then re-apply zoom around the original focal point.
+    zoomState.scale = pinchStart.scale;
+    zoomState.panX = pinchStart.panX;
+    zoomState.panY = pinchStart.panY;
+    setZoom(newScale, pinchStart.cx, pinchStart.cy);
+    return;
+  }
+  if(panStart){
+    zoomState.panX = panStart.panX + (e.clientX - panStart.x);
+    zoomState.panY = panStart.panY + (e.clientY - panStart.y);
+    clampPan();
+    applyZoomTransform();
+    return;
+  }
   if(!drag) return;
   const dx = e.clientX - drag.startX;
   if(!drag.direction){
@@ -969,6 +1070,9 @@ readerStage.addEventListener('pointermove', (e) => {
   applyDragAngle(drag.direction, ratio);
 });
 function endDrag(e){
+  activePointers.delete(e.pointerId);
+  if(activePointers.size < 2) pinchStart = null;
+  if(activePointers.size === 0) panStart = null;
   if(!drag) return;
   if(drag.direction && drag.direction !== 'blocked'){
     const dx = Math.abs((e.clientX||0) - drag.startX);
@@ -980,8 +1084,31 @@ function endDrag(e){
 readerStage.addEventListener('pointerup', endDrag);
 readerStage.addEventListener('pointercancel', endDrag);
 
-$('zoneLeft').addEventListener('click', () => programmaticFlip('prev'));
-$('zoneRight').addEventListener('click', () => programmaticFlip('next'));
+// Double-tap / double-click to toggle zoom
+let lastTapAt = 0, lastTapX = 0, lastTapY = 0;
+readerStage.addEventListener('click', (e) => {
+  const now = Date.now();
+  const near = Math.abs(e.clientX - lastTapX) < 40 && Math.abs(e.clientY - lastTapY) < 40;
+  if(now - lastTapAt < 320 && near){
+    if(zoomState.scale > 1.02) setZoom(1);
+    else setZoom(2.2, e.clientX, e.clientY);
+    lastTapAt = 0;
+    e.stopPropagation();
+  } else {
+    lastTapAt = now; lastTapX = e.clientX; lastTapY = e.clientY;
+  }
+}, true);
+
+// Wheel: Ctrl+wheel to zoom (desktop)
+readerStage.addEventListener('wheel', (e) => {
+  if(!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const factor = Math.exp(-e.deltaY * 0.0025);
+  setZoom(zoomState.scale * factor, e.clientX, e.clientY);
+}, { passive:false });
+
+$('zoneLeft').addEventListener('click', () => { if(zoomState.scale <= 1.02) programmaticFlip('prev'); });
+$('zoneRight').addEventListener('click', () => { if(zoomState.scale <= 1.02) programmaticFlip('next'); });
 
 document.addEventListener('keydown', (e) => {
   if(readerEl.classList.contains('hidden')) return;
