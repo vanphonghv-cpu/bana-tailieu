@@ -649,7 +649,9 @@ async function handleUpload(file){
 
   try{
     const title = file.name.replace(/\.pdf$/i,'');
-    const bookMeta = { id, title, pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now() };
+    showLoading('Đang tạo ảnh bìa…');
+    const cover = await renderCoverThumbnail(doc);
+    const bookMeta = { id, title, pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(), sizeBytes: file.size, cover };
     libraryIndex.unshift(bookMeta);
     await saveIndex();
     renderShelf();
