@@ -506,6 +506,16 @@ async function saveIndex(){
   await safeSet(INDEX_KEY, JSON.stringify(libraryIndex));
 }
 
+function formatFileMeta(book){
+  const parts = [];
+  if(book.pageCount) parts.push(`${book.pageCount} trang`);
+  if(book.addedAt){
+    const d = new Date(book.addedAt);
+    parts.push(d.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}));
+  }
+  return parts;
+}
+
 function renderShelf(){
   shelfEl.innerHTML = '';
   if(libraryIndex.length === 0){
@@ -514,16 +524,25 @@ function renderShelf(){
   }
   libraryIndex.forEach((book, i) => {
     const div = document.createElement('div');
-    div.className = 'book ' + SPINE_CLASSES[i % SPINE_CLASSES.length];
-    div.style.background = spineColor(i);
+    div.className = 'book';
     const percent = book.pageCount ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
+    const status = percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc');
+    const metaBits = formatFileMeta(book);
+    const metaHtml = metaBits.map((t, idx) =>
+      (idx>0 ? '<span class="dot"></span>' : '') + `<span>${escapeHtml(t)}</span>`
+    ).join('');
+    const coverStyle = book.cover
+      ? `background-image:url(${book.cover});`
+      : `background:${spineColor(i)};`;
+    const coverInner = book.cover ? '' : `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
     div.innerHTML = `
-      <button class="book-del" data-id="${book.id}" aria-label="Xóa">×</button>
-      <div class="book-title">${escapeHtml(book.title)}</div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div class="book-progress-dot ${percent>0?'':'unread'}"></div>
-        <div class="book-percent">${percent>0? percent+'%':'Mới'}</div>
+      <div class="book-cover" style="${coverStyle}">${coverInner}</div>
+      <div class="book-info">
+        <div class="book-title">${escapeHtml(book.title)}</div>
+        <div class="book-meta">${metaHtml}${metaBits.length? '<span class="dot"></span>':''}<span>${status}</span></div>
+        <div class="book-progress-bar"><span style="width:${percent}%"></span></div>
       </div>
+      <button class="book-del" data-id="${book.id}" aria-label="Xóa">×</button>
     `;
     div.addEventListener('click', (e) => {
       if(e.target.closest('.book-del')) return;
@@ -541,7 +560,26 @@ function spineColor(i){
   return palette[i % palette.length];
 }
 function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Render page 1 of a pdf as a small JPEG data URL to use as the cover thumbnail.
+async function renderCoverThumbnail(pdfDoc){
+  try{
+    const page = await pdfDoc.getPage(1);
+    const baseViewport = page.getViewport({scale:1});
+    const targetWidth = 220;
+    const scale = targetWidth / baseViewport.width;
+    const viewport = page.getViewport({scale});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({canvasContext: ctx, viewport}).promise;
+    return canvas.toDataURL('image/jpeg', 0.7);
+  }catch(e){
+    console.warn('cover-render-failed', e);
+    return null;
+  }
 }
 
 // ---------- upload ----------
