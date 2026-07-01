@@ -769,6 +769,7 @@ function openBookWithDoc(book, doc){
   readerTitle.textContent = book.title;
   readerEl.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  if(typeof resetZoom === 'function') resetZoom();
   renderCurrentPage();
   prefetchNeighbors();
 }
