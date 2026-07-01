@@ -301,62 +301,73 @@ let currentPage = 1;
 let pageImageCache = new Map();
 let progressSaveTimer = null;
 
-// ---------- storage helpers ----------
-// storageMode: 'persistent' (real window.storage, survives closing the app),
-// 'memory' (in-session fallback, lost on close — used automatically if persistent storage
-// is proven non-functional), or 'unknown' (not yet checked).
-let storageMode = 'unknown';
+// ---------- storage helpers (IndexedDB-backed) ----------
+// Uses IndexedDB for real persistence across sessions. Falls back to in-memory
+// map only if IndexedDB is unavailable or blocked (e.g. Safari private mode).
+let storageMode = 'unknown'; // 'persistent' | 'memory' | 'unknown'
 const memoryStore = new Map();
 
-function storageAvailable(){ return typeof window.storage !== 'undefined' && window.storage !== null; }
+const IDB_NAME = 'flipbook-lib';
+const IDB_STORE = 'kv';
+let _idbPromise = null;
+function openIDB(){
+  if(_idbPromise) return _idbPromise;
+  _idbPromise = new Promise((resolve, reject) => {
+    if(typeof indexedDB === 'undefined'){ reject(new Error('no-indexeddb')); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('idb-open-failed'));
+    req.onblocked = () => reject(new Error('idb-blocked'));
+  });
+  return _idbPromise;
+}
+function idbReq(mode, fn){
+  return openIDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, mode);
+    const store = tx.objectStore(IDB_STORE);
+    const req = fn(store);
+    tx.oncomplete = () => resolve(req && 'result' in req ? req.result : undefined);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error('idb-abort'));
+  }));
+}
+
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-async function rawGet(key, shared){
-  if(storageMode === 'memory'){
-    return memoryStore.has(key) ? memoryStore.get(key) : null;
-  }
-  const r = await window.storage.get(key, shared);
-  return r ? r.value : null;
+async function rawGet(key){
+  if(storageMode === 'memory') return memoryStore.has(key) ? memoryStore.get(key) : null;
+  const v = await idbReq('readonly', s => s.get(key));
+  return v === undefined ? null : v;
 }
-async function rawSet(key, value, shared){
-  if(storageMode === 'memory'){
-    memoryStore.set(key, value);
-    return {key, value, shared};
-  }
-  return await window.storage.set(key, value, shared);
+async function rawSet(key, value){
+  if(storageMode === 'memory'){ memoryStore.set(key, value); return {key}; }
+  await idbReq('readwrite', s => s.put(value, key));
+  return {key};
 }
-async function rawDelete(key, shared){
-  if(storageMode === 'memory'){
-    memoryStore.delete(key);
-    return {key, deleted:true, shared};
-  }
-  return await window.storage.delete(key, shared);
+async function rawDelete(key){
+  if(storageMode === 'memory'){ memoryStore.delete(key); return {key, deleted:true}; }
+  await idbReq('readwrite', s => s.delete(key));
+  return {key, deleted:true};
 }
 
-async function safeGet(key, shared=false){
-  if(storageMode !== 'memory' && !storageAvailable()) throw new Error('STORAGE_UNAVAILABLE');
-  try{ return await rawGet(key, shared); }
-  catch(e){ return null; } // non-existent key throws by design -> treat as "not found"
+async function safeGet(key){
+  try{ return await rawGet(key); }catch(e){ return null; }
 }
-async function safeSet(key, value, shared=false, retries=4){
-  if(storageMode !== 'memory' && !storageAvailable()) throw new Error('STORAGE_UNAVAILABLE');
-  if(storageMode === 'memory') return await rawSet(key, value, shared);
+async function safeSet(key, value, _shared=false, retries=3){
   let lastErr = null;
   for(let attempt=1; attempt<=retries; attempt++){
-    try{
-      const result = await rawSet(key, value, shared);
-      if(result) return result;
-      lastErr = new Error('EMPTY_RESULT');
-    }catch(e){ lastErr = e; }
-    if(attempt < retries) await sleep(700 * Math.pow(2, attempt-1)); // 700ms, 1400ms, 2800ms
+    try{ return await rawSet(key, value); }
+    catch(e){ lastErr = e; if(attempt < retries) await sleep(300 * attempt); }
   }
-  console.error('storage set failed after retries', key, lastErr);
+  console.error('storage set failed', key, lastErr);
   throw new Error('STORAGE_WRITE_FAILED: ' + (lastErr && lastErr.message ? lastErr.message : lastErr));
 }
-async function safeDelete(key, shared=false){
-  if(storageMode !== 'memory' && !storageAvailable()) return null;
-  try{ return await rawDelete(key, shared); }
-  catch(e){ return null; }
+async function safeDelete(key){
+  try{ return await rawDelete(key); }catch(e){ return null; }
 }
 
 // Real-world check that the *persistent* storage backend is actually responding right now.
