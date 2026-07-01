@@ -1002,6 +1002,34 @@ function seedEmbeddedBooks(){
   renderStorageModeBanner();
   renderShelf();
   hideLoading();
+  // Backfill covers for books uploaded before covers existed — done lazily in background.
+  backfillCovers();
+})();
+
+async function backfillCovers(){
+  const missing = libraryIndex.filter(b => !b.cover && !b.embedded && b.numChunks);
+  if(missing.length === 0) return;
+  for(const book of missing){
+    try{
+      let base64 = '';
+      for(let i=0;i<book.numChunks;i++){
+        const c = await safeGet(`book:${book.id}:c${i}`);
+        if(c === null){ base64 = null; break; }
+        base64 += c;
+      }
+      if(!base64) continue;
+      const doc = await pdfjsLib.getDocument({data: base64ToBytes(base64)}).promise;
+      const cover = await renderCoverThumbnail(doc);
+      if(cover){
+        book.cover = cover;
+        const idx = libraryIndex.findIndex(b => b.id === book.id);
+        if(idx>=0) libraryIndex[idx].cover = cover;
+      }
+    }catch(e){ console.warn('backfill-failed', book.id, e); }
+  }
+  await saveIndex();
+  renderShelf();
+}
 })();
 </script>
 </body>
