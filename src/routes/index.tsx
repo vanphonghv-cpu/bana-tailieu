@@ -1,24 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Văn phòng Đảng ủy xã Bà Nà — Tài liệu lật trang" },
+      {
+        name: "description",
+        content:
+          "Giá sách số của Văn phòng Đảng ủy xã Bà Nà — đọc tài liệu, sách PDF theo hình thức lật trang trên trình duyệt.",
+      },
+      { property: "og:title", content: "Văn phòng Đảng ủy xã Bà Nà — Tài liệu lật trang" },
+      {
+        property: "og:description",
+        content: "Giá sách số — đọc tài liệu PDF theo hình thức lật trang.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  useEffect(() => {
+    window.location.replace("/flipbook.html");
+  }, []);
   return (
     <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#1C0E0F",
+        color: "#E7CE86",
+        fontFamily: "system-ui, sans-serif",
+      }}
     >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+      Đang mở giá sách…
     </div>
   );
 }
