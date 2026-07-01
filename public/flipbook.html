@@ -617,6 +617,7 @@ function fileToBase64(file){
 }
 
 async function handleUpload(file){
+  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu mới.'); return; }
   if(!file) return;
   if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
     showErrorBanner('Sai định dạng tệp', 'Hiện tại ứng dụng chỉ hỗ trợ tệp PDF (.pdf). Vui lòng chọn lại.');
