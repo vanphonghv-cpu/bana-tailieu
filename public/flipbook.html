@@ -438,7 +438,6 @@ async function saveChunksAdaptive(id, base64, onProgress){
       await safeSet(`book:${id}:c${writtenIndex}`, str, false, 3);
       writtenIndex++;
       if(onProgress) onProgress(writtenIndex, Math.max(estTotal, writtenIndex));
-      await sleep(180); // gentle pacing between writes to avoid tripping rate limits
     }catch(e){
       if(str.length <= MIN_PIECE_SIZE || depth > 8){
         throw e;
