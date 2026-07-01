@@ -197,18 +197,25 @@
     font-family:var(--display-font); font-size:14px; font-weight:600; color:#E9E1D2;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;
   }
-  .reader-download{
+  .reader-download, .reader-zoom-btn{
     width:38px; height:38px; border-radius:50%; border:1px solid rgba(201,162,39,0.45);
     background:rgba(201,162,39,0.12); color:var(--gold-soft);
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
     transition:background .18s ease, transform .12s ease;
+    padding:0; font: inherit;
   }
-  .reader-download:active{ transform:scale(0.94); background:rgba(201,162,39,0.22); }
+  .reader-zoom-btn{ width:34px; height:34px; font-size:19px; line-height:1; font-weight:600; }
+  .reader-zoom-btn:disabled{ opacity:0.35; cursor:default; }
+  .reader-download:active, .reader-zoom-btn:active:not(:disabled){ transform:scale(0.94); background:rgba(201,162,39,0.22); }
   .reader-download svg{ width:18px; height:18px; }
+  .reader-zoom-group{ display:flex; gap:6px; flex-shrink:0; }
   .reader-stage{
     flex:1; position:relative; display:flex; align-items:center; justify-content:center;
     padding:6px 14px; overflow:hidden; touch-action:none;
   }
+  .reader-stage.is-zoomed .page-tap-zone{ display:none; }
+  .book-frame{ transition:transform .18s ease; transform-origin:center center; }
+  .book-frame.zoomed{ transition:none; }
   .page-tap-zone{ position:absolute; top:0; bottom:0; width:22%; z-index:5; }
   .page-tap-zone.left{ left:0; } .page-tap-zone.right{ right:0; }
 
