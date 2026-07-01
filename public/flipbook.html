@@ -245,6 +245,27 @@
   @media (prefers-reduced-motion: reduce){
     .flip-page{ transition:none !important; }
   }
+
+  /* ---------- admin gate ---------- */
+  body:not(.is-admin) #dropzone{ display:none !important; }
+  body:not(.is-admin) .book-del{ display:none !important; }
+  body:not(.is-admin) .shelf-label .ro-note{ display:inline; }
+  .shelf-label .ro-note{ display:none; color:#7C7361; font-weight:400; letter-spacing:0.05em; text-transform:none; margin-left:6px; }
+  .admin-footer{
+    text-align:center; margin:30px 0 10px; font-size:11.5px; letter-spacing:0.15em;
+    text-transform:uppercase; color:#5C5546;
+  }
+  .admin-footer button{
+    background:none; border:none; color:#8A7F68; font:inherit; letter-spacing:inherit;
+    text-transform:inherit; cursor:pointer; padding:6px 10px;
+  }
+  .admin-footer button:hover{ color:var(--gold-soft); }
+  .admin-badge{ display:none; }
+  body.is-admin .admin-badge{
+    display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px;
+    background:var(--gold); color:#241a06; font-size:10.5px; font-weight:700;
+    letter-spacing:0.08em; vertical-align:middle;
+  }
 </style>
 </head>
 <body>
@@ -267,8 +288,11 @@
       </label>
     </div>
 
-    <div class="shelf-label">Kệ sách của bạn</div>
+    <div class="shelf-label">Kệ sách<span class="admin-badge">Quản trị</span><span class="ro-note">— khách chỉ xem</span></div>
     <div class="shelf" id="shelf"></div>
+    <div class="admin-footer">
+      <button id="adminToggleBtn" type="button">Quản trị</button>
+    </div>
   </div>
 
   <!-- READER VIEW -->
@@ -593,6 +617,7 @@ function fileToBase64(file){
 }
 
 async function handleUpload(file){
+  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu mới.'); return; }
   if(!file) return;
   if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
     showErrorBanner('Sai định dạng tệp', 'Hiện tại ứng dụng chỉ hỗ trợ tệp PDF (.pdf). Vui lòng chọn lại.');
@@ -674,6 +699,7 @@ function base64ToBytes(base64){
 // ---------- delete ----------
 let pendingDelete = null;
 function confirmDeleteBook(book){
+  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể xóa tài liệu.'); return; }
   pendingDelete = book;
   modalOverlay.classList.remove('hidden');
 }
@@ -991,6 +1017,38 @@ function seedEmbeddedBooks(){
     }
   });
 }
+
+// ---------- admin mode (chỉ chủ sở hữu mới upload/xóa) ----------
+// Đổi mật khẩu ở dòng dưới. Đây là cổng khóa phía client cho site tĩnh — đủ để
+// ngăn khách xóa/upload trên trình duyệt của họ, không phải bảo mật tuyệt đối.
+const ADMIN_PASSWORD = 'banadmin@2026';
+const ADMIN_FLAG_KEY = 'flipbook-admin-unlocked';
+function isAdminUnlocked(){
+  try{ return localStorage.getItem(ADMIN_FLAG_KEY) === '1'; }catch(_){ return false; }
+}
+function applyAdminMode(){
+  document.body.classList.toggle('is-admin', isAdminUnlocked());
+  const btn = document.getElementById('adminToggleBtn');
+  if(btn) btn.textContent = isAdminUnlocked() ? 'Thoát chế độ quản trị' : 'Quản trị';
+}
+document.getElementById('adminToggleBtn')?.addEventListener('click', () => {
+  if(isAdminUnlocked()){
+    try{ localStorage.removeItem(ADMIN_FLAG_KEY); }catch(_){ }
+    applyAdminMode();
+    renderShelf();
+    return;
+  }
+  const pwd = prompt('Nhập mật khẩu quản trị để chỉnh sửa giá sách:');
+  if(pwd === null) return;
+  if(pwd === ADMIN_PASSWORD){
+    try{ localStorage.setItem(ADMIN_FLAG_KEY, '1'); }catch(_){ }
+    applyAdminMode();
+    renderShelf();
+  } else {
+    alert('Mật khẩu không đúng.');
+  }
+});
+applyAdminMode();
 
 (async function init(){
   showLoading('Đang mở giá sách…');
