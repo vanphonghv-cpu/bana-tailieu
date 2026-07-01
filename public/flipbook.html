@@ -281,7 +281,7 @@
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const CHUNK_SIZE = 500000; // base64 chars (~500KB) per chunk — small and gentle on the storage backend
+const CHUNK_SIZE = 4000000; // base64 chars (~4MB) per chunk — IndexedDB handles this easily
 const INDEX_KEY = 'library-index';
 const SPINE_CLASSES = ['spine-a','spine-b','spine-c','spine-d'];
 
