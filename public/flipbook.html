@@ -370,19 +370,12 @@ async function safeDelete(key){
   try{ return await rawDelete(key); }catch(e){ return null; }
 }
 
-// Real-world check that the *persistent* storage backend is actually responding right now.
-// Always tests window.storage directly (never the memory fallback) so we can detect recovery.
+// Verify IndexedDB is actually usable right now (rules out Safari private mode / quota errors).
 async function persistentStorageHealthy(){
-  if(!storageAvailable()) return false;
   const testKey = 'preflight-' + Date.now();
   try{
-    let ok = null;
-    for(let attempt=1; attempt<=2; attempt++){
-      try{ ok = await window.storage.set(testKey, 'ok', false); if(ok) break; }
-      catch(e){ if(attempt===2) throw e; await sleep(500); }
-    }
-    if(!ok) return false;
-    await window.storage.delete(testKey, false).catch(()=>{});
+    await idbReq('readwrite', s => s.put('ok', testKey));
+    await idbReq('readwrite', s => s.delete(testKey));
     return true;
   }catch(e){
     console.error('persistent storage health check failed', e);
