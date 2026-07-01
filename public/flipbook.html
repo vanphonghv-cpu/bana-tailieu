@@ -699,6 +699,7 @@ function base64ToBytes(base64){
 // ---------- delete ----------
 let pendingDelete = null;
 function confirmDeleteBook(book){
+  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể xóa tài liệu.'); return; }
   pendingDelete = book;
   modalOverlay.classList.remove('hidden');
 }
