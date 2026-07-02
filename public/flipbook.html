@@ -223,6 +223,24 @@
     position:relative; width:100%; height:100%; max-width:520px;
     perspective:1800px;
   }
+  .book-frame.fitted{ width:auto; height:auto; max-width:none; }
+
+  /* file-type badge on shelf cards */
+  .book-badge{
+    display:inline-block; padding:1px 6px; border-radius:4px;
+    font-size:10px; font-weight:700; letter-spacing:0.08em;
+    text-transform:uppercase; color:#fff;
+  }
+  .badge-pdf{ background:#8C1C1C; }
+  .badge-word{ background:#1F5AA6; }
+  .badge-ppt{ background:#C7472C; }
+  .badge-excel{ background:#1F7A3E; }
+  .book-cover.cover-word{ background:linear-gradient(135deg,#1F5AA6,#0F3D77); color:#fff; }
+  .book-cover.cover-ppt{ background:linear-gradient(135deg,#C7472C,#8A2F19); color:#fff; }
+  .book-cover.cover-excel{ background:linear-gradient(135deg,#1F7A3E,#125427); color:#fff; }
+  .book-cover .cover-ext{
+    font-family:var(--ui-font); font-weight:700; font-size:16px; letter-spacing:0.06em;
+  }
   .static-page, .flip-page{
     position:absolute; inset:0; border-radius:3px; background:var(--paper);
     background-size:cover; background-position:center; background-repeat:no-repeat;
