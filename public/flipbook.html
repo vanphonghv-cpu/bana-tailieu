@@ -576,30 +576,67 @@ function renderShelf(){
     return;
   }
   libraryIndex.forEach((book, i) => {
+function formatFileMeta(book){
+  const parts = [];
+  if(book.kind === 'pdf' && book.pageCount) parts.push(`${book.pageCount} trang`);
+  else if(book.sizeBytes) parts.push(`${(book.sizeBytes/(1024*1024)).toFixed(1)} MB`);
+  if(book.addedAt){
+    const d = new Date(book.addedAt);
+    parts.push(d.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}));
+  }
+  return parts;
+}
+
+const KIND_LABEL = { pdf:'PDF', word:'WORD', ppt:'PPT', excel:'EXCEL' };
+const EXT_LABEL  = { pdf:'PDF', word:'DOC', ppt:'PPT', excel:'XLS' };
+
+function renderShelf(){
+  shelfEl.innerHTML = '';
+  if(libraryIndex.length === 0){
+    shelfEl.innerHTML = '<div class="empty-shelf">Giá sách còn trống — tải lên tài liệu đầu tiên của bạn.</div>';
+    return;
+  }
+  libraryIndex.forEach((book, i) => {
     const div = document.createElement('div');
     div.className = 'book';
-    const percent = book.pageCount ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
-    const status = percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc');
+    const kind = book.kind || 'pdf';
+    const isPdf = kind === 'pdf';
+    const percent = (isPdf && book.pageCount) ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
+    const status = isPdf
+      ? (percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc'))
+      : 'Chạm để tải về';
     const metaBits = formatFileMeta(book);
-    const metaHtml = metaBits.map((t, idx) =>
-      (idx>0 ? '<span class="dot"></span>' : '') + `<span>${escapeHtml(t)}</span>`
-    ).join('');
-    const coverStyle = book.cover
-      ? `background-image:url(${book.cover});`
-      : `background:${spineColor(i)};`;
-    const coverInner = book.cover ? '' : `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
+    const badgeCls = 'badge-' + kind;
+    const badgeHtml = `<span class="book-badge ${badgeCls}">${KIND_LABEL[kind]||'FILE'}</span>`;
+    const metaHtml = badgeHtml
+      + metaBits.map(t => '<span class="dot"></span><span>'+escapeHtml(t)+'</span>').join('')
+      + '<span class="dot"></span><span>' + escapeHtml(status) + '</span>';
+    let coverStyle = '', coverInner = '', coverExtraCls = '';
+    if(isPdf && book.cover){
+      coverStyle = `background-image:url(${book.cover});`;
+    } else if(isPdf){
+      coverStyle = `background:${spineColor(i)};`;
+      coverInner = `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
+    } else {
+      coverExtraCls = ' cover-' + kind;
+      coverInner = `<span class="cover-ext">${EXT_LABEL[kind]||'FILE'}</span>`;
+    }
+    const progressHtml = isPdf
+      ? `<div class="book-progress-bar"><span style="width:${percent}%"></span></div>`
+      : '';
     div.innerHTML = `
-      <div class="book-cover" style="${coverStyle}">${coverInner}</div>
+      <div class="book-cover${coverExtraCls}" style="${coverStyle}">${coverInner}</div>
       <div class="book-info">
         <div class="book-title">${escapeHtml(book.title)}</div>
-        <div class="book-meta">${metaHtml}${metaBits.length? '<span class="dot"></span>':''}<span>${status}</span></div>
-        <div class="book-progress-bar"><span style="width:${percent}%"></span></div>
+        <div class="book-meta">${metaHtml}</div>
+        ${progressHtml}
       </div>
       <button class="book-del" data-id="${book.id}" aria-label="Xóa">×</button>
     `;
     div.addEventListener('click', (e) => {
       if(e.target.closest('.book-del')) return;
-      openBook(book);
+      if(isPdf) openBook(book);
+      else downloadBook(book);
     });
     div.querySelector('.book-del').addEventListener('click', (e) => {
       e.stopPropagation();
