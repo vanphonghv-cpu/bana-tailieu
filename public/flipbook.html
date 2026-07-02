@@ -894,48 +894,29 @@ $('readerBack').addEventListener('click', closeReader);
 // string in a single JS string beyond what's necessary.
 async function downloadCurrentBook(){
   if(!currentBook) return;
-  const book = currentBook;
-  const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.pdf';
-  try{
-    showLoading('Đang chuẩn bị tệp để tải…');
-    const parts = [];
-    if(book.embedded){
-      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
-      if(!src) throw new Error('embedded-missing');
-      parts.push(base64ToBytes(src.base64));
-    } else {
-      for(let i=0;i<book.numChunks;i++){
-        const c = await safeGet(`book:${book.id}:c${i}`);
-        if(c === null) throw new Error('missing-chunk-'+i);
-        parts.push(base64ToBytes(c));
-        if(i % 3 === 0){
-          const pct = Math.round(((i+1)/book.numChunks)*100);
-          showLoading(`Đang chuẩn bị tệp để tải… ${pct}%`);
-          await sleep(0); // yield to UI thread
-        }
-      }
-    }
-    const blob = new Blob(parts, {type:'application/pdf'});
-    hideLoading();
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = safeName;
-    a.rel = 'noopener';
-    // iOS Safari: append to DOM before click so the download gesture is honored.
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 4000);
-  }catch(err){
-    console.error('download-failed', err);
-    showErrorBanner('Không tải được tệp', 'Không thể ghép lại nội dung PDF từ bộ nhớ. Vui lòng thử lại hoặc tải lên lại tệp.');
-  }
+  await downloadBook(currentBook);
 }
 $('readerDownload').addEventListener('click', downloadCurrentBook);
+
+// Điều chỉnh khung sách theo tỉ lệ trang (fit "contain") để trang ngang / slide
+// hiển thị đầy đủ trong màn hình, không bị cắt.
+async function fitBookFrameToPage(pageNum){
+  if(!currentPdfDoc) return;
+  try{
+    const page = await currentPdfDoc.getPage(pageNum);
+    const vp = page.getViewport({scale:1});
+    const aspect = vp.width / vp.height;
+    const stage = readerStage.getBoundingClientRect();
+    const availW = Math.max(200, stage.width - 24);
+    const availH = Math.max(200, stage.height - 12);
+    let w = availW, h = w / aspect;
+    if(h > availH){ h = availH; w = h * aspect; }
+    bookFrame.classList.add('fitted');
+    bookFrame.style.width = Math.round(w) + 'px';
+    bookFrame.style.height = Math.round(h) + 'px';
+  }catch(e){ /* ignore */ }
+}
+
 
 async function getPageImage(pageNum){
   if(pageImageCache.has(pageNum)) return pageImageCache.get(pageNum);
