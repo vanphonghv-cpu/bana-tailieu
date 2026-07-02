@@ -948,10 +948,13 @@ async function prefetchNeighbors(){
 
 async function renderCurrentPage(){
   updateIndicator();
+  await fitBookFrameToPage(currentPage);
   pageUnder.innerHTML = '';
   try{
     const url = await getPageImage(currentPage);
     pageUnder.style.backgroundImage = `url(${url})`;
+    pageUnder.style.backgroundSize = 'contain';
+    pageUnder.style.backgroundColor = 'var(--paper)';
   }catch(e){
     pageUnder.innerHTML = '<div class="page-placeholder">Không thể hiển thị trang này</div>';
   }
