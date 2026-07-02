@@ -665,16 +665,32 @@ function fileToBase64(file){
   });
 }
 
+const KIND_BY_EXT = {
+  pdf:  { kind:'pdf',   mime:'application/pdf' },
+  doc:  { kind:'word',  mime:'application/msword' },
+  docx: { kind:'word',  mime:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+  ppt:  { kind:'ppt',   mime:'application/vnd.ms-powerpoint' },
+  pptx: { kind:'ppt',   mime:'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
+  xls:  { kind:'excel', mime:'application/vnd.ms-excel' },
+  xlsx: { kind:'excel', mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+};
+function detectFileKind(file){
+  const ext = (file.name.split('.').pop()||'').toLowerCase();
+  const info = KIND_BY_EXT[ext];
+  return info ? { ext, ...info } : null;
+}
+
 async function handleUpload(file){
   if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu mới.'); return; }
   if(!file) return;
-  if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
-    showErrorBanner('Sai định dạng tệp', 'Hiện tại ứng dụng chỉ hỗ trợ tệp PDF (.pdf). Vui lòng chọn lại.');
+  const info = detectFileKind(file);
+  if(!info){
+    showErrorBanner('Sai định dạng tệp', 'Chỉ hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx) và Excel (.xls/.xlsx). Vui lòng chọn lại.');
     return;
   }
   const sizeMB = file.size / (1024*1024);
   if(sizeMB > 180){
-    showErrorBanner('Tệp quá lớn', `Tệp của bạn khoảng ${sizeMB.toFixed(0)}MB. Trình duyệt di động khó xử lý tệp trên 180MB một cách ổn định. Vui lòng thử tệp nhỏ hơn hoặc nén lại PDF.`);
+    showErrorBanner('Tệp quá lớn', `Tệp của bạn khoảng ${sizeMB.toFixed(0)}MB. Trình duyệt di động khó xử lý tệp trên 180MB một cách ổn định. Vui lòng thử tệp nhỏ hơn hoặc nén lại.`);
     return;
   }
   if(storageMode === 'unknown'){
@@ -690,7 +706,7 @@ async function handleUpload(file){
     base64 = await fileToBase64(file);
   }catch(err){
     console.error('read-file-failed', err);
-    showErrorBanner('Không đọc được tệp', 'Trình duyệt không đọc được tệp này. Vui lòng thử chọn lại tệp hoặc dùng một tệp PDF khác.');
+    showErrorBanner('Không đọc được tệp', 'Trình duyệt không đọc được tệp này. Vui lòng thử chọn lại tệp.');
     return;
   }
 
@@ -702,12 +718,23 @@ async function handleUpload(file){
     });
   }catch(err){
     console.error('chunk-save-failed', err);
-    // roll back any chunks already written for this id
     for(let j=0;j<writtenCount;j++){ await safeDelete(`book:${id}:c${j}`); }
-    showErrorBanner('Lưu trữ thất bại', 'Không thể lưu tài liệu vào bộ nhớ dù đã thử chia nhỏ nhiều lần. Có thể do mất kết nối. Vui lòng kiểm tra mạng và thử lại, hoặc thử một tệp PDF nhỏ hơn.');
+    showErrorBanner('Lưu trữ thất bại', 'Không thể lưu tài liệu vào bộ nhớ dù đã thử chia nhỏ nhiều lần. Vui lòng kiểm tra dung lượng trống và thử lại.');
     return;
   }
   const numChunks = writtenCount;
+  const title = file.name.replace(new RegExp('\\.'+info.ext+'$','i'),'');
+
+  if(info.kind !== 'pdf'){
+    // Không cần render PDF cho các định dạng Office — chỉ lưu để tải lại.
+    const bookMeta = { id, title, kind:info.kind, ext:info.ext, mime:info.mime,
+      numChunks, addedAt: Date.now(), sizeBytes: file.size };
+    libraryIndex.unshift(bookMeta);
+    try{ await saveIndex(); }catch(_){}
+    renderShelf();
+    hideLoading();
+    return;
+  }
 
   let doc;
   try{
@@ -722,10 +749,11 @@ async function handleUpload(file){
   }
 
   try{
-    const title = file.name.replace(/\.pdf$/i,'');
     showLoading('Đang tạo ảnh bìa…');
     const cover = await renderCoverThumbnail(doc);
-    const bookMeta = { id, title, pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(), sizeBytes: file.size, cover };
+    const bookMeta = { id, title, kind:'pdf', ext:'pdf', mime:'application/pdf',
+      pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(),
+      sizeBytes: file.size, cover };
     libraryIndex.unshift(bookMeta);
     await saveIndex();
     renderShelf();
@@ -736,6 +764,46 @@ async function handleUpload(file){
     showErrorBanner('Không lưu được vào giá sách', 'Tài liệu đã lưu nhưng không thêm được vào danh sách. Vui lòng thử tải lại trang.');
   }
 }
+
+// Tải tệp bất kỳ (kể cả Office) từ bộ nhớ về máy người dùng.
+async function downloadBook(book){
+  const ext = book.ext || (book.kind === 'pdf' ? 'pdf' : 'bin');
+  const mime = book.mime || 'application/octet-stream';
+  const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.' + ext;
+  try{
+    showLoading('Đang chuẩn bị tệp để tải…');
+    const parts = [];
+    if(book.embedded){
+      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
+      if(!src) throw new Error('embedded-missing');
+      parts.push(base64ToBytes(src.base64));
+    } else {
+      for(let i=0;i<book.numChunks;i++){
+        const c = await safeGet(`book:${book.id}:c${i}`);
+        if(c === null) throw new Error('missing-chunk-'+i);
+        parts.push(base64ToBytes(c));
+        if(i % 3 === 0){
+          const pct = Math.round(((i+1)/book.numChunks)*100);
+          showLoading(`Đang chuẩn bị tệp để tải… ${pct}%`);
+          await sleep(0);
+        }
+      }
+    }
+    const blob = new Blob(parts, {type: mime});
+    hideLoading();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = safeName; a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
+  }catch(err){
+    console.error('download-failed', err);
+    hideLoading();
+    showErrorBanner('Không tải được tệp', 'Không thể ghép lại nội dung tệp từ bộ nhớ. Vui lòng thử lại.');
+  }
+}
+
 
 function base64ToBytes(base64){
   const binStr = atob(base64);
