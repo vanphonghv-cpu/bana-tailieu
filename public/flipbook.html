@@ -561,23 +561,6 @@ async function saveIndex(){
 
 function formatFileMeta(book){
   const parts = [];
-  if(book.pageCount) parts.push(`${book.pageCount} trang`);
-  if(book.addedAt){
-    const d = new Date(book.addedAt);
-    parts.push(d.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}));
-  }
-  return parts;
-}
-
-function renderShelf(){
-  shelfEl.innerHTML = '';
-  if(libraryIndex.length === 0){
-    shelfEl.innerHTML = '<div class="empty-shelf">Giá sách còn trống — tải lên tài liệu đầu tiên của bạn.</div>';
-    return;
-  }
-  libraryIndex.forEach((book, i) => {
-function formatFileMeta(book){
-  const parts = [];
   if(book.kind === 'pdf' && book.pageCount) parts.push(`${book.pageCount} trang`);
   else if(book.sizeBytes) parts.push(`${(book.sizeBytes/(1024*1024)).toFixed(1)} MB`);
   if(book.addedAt){
