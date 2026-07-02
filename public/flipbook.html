@@ -223,9 +223,27 @@
     position:relative; width:100%; height:100%; max-width:520px;
     perspective:1800px;
   }
+  .book-frame.fitted{ width:auto; height:auto; max-width:none; }
+
+  /* file-type badge on shelf cards */
+  .book-badge{
+    display:inline-block; padding:1px 6px; border-radius:4px;
+    font-size:10px; font-weight:700; letter-spacing:0.08em;
+    text-transform:uppercase; color:#fff;
+  }
+  .badge-pdf{ background:#8C1C1C; }
+  .badge-word{ background:#1F5AA6; }
+  .badge-ppt{ background:#C7472C; }
+  .badge-excel{ background:#1F7A3E; }
+  .book-cover.cover-word{ background:linear-gradient(135deg,#1F5AA6,#0F3D77); color:#fff; }
+  .book-cover.cover-ppt{ background:linear-gradient(135deg,#C7472C,#8A2F19); color:#fff; }
+  .book-cover.cover-excel{ background:linear-gradient(135deg,#1F7A3E,#125427); color:#fff; }
+  .book-cover .cover-ext{
+    font-family:var(--ui-font); font-weight:700; font-size:16px; letter-spacing:0.06em;
+  }
   .static-page, .flip-page{
     position:absolute; inset:0; border-radius:3px; background:var(--paper);
-    background-size:cover; background-position:center; background-repeat:no-repeat;
+    background-size:contain; background-position:center; background-repeat:no-repeat;
     box-shadow:0 10px 30px rgba(0,0,0,0.45);
   }
   .flip-page{
@@ -288,10 +306,10 @@
 
     <div class="dropzone" id="dropzone">
       <svg viewBox="0 0 24 24" fill="none" stroke="#E7CE86" stroke-width="1.6"><path d="M12 3v12m0-12l-4 4m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-      <div class="dropzone-title">Kéo thả tệp PDF vào đây</div>
-      <div class="dropzone-sub">hoặc chạm nút bên dưới để chọn tệp từ máy</div>
-      <label class="dropzone-btn" id="pickBtn">Chọn tệp PDF
-        <input type="file" id="fileInput" accept="application/pdf">
+      <div class="dropzone-title">Kéo thả tệp vào đây</div>
+      <div class="dropzone-sub">Hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx), Excel (.xls/.xlsx)</div>
+      <label class="dropzone-btn" id="pickBtn">Chọn tệp
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       </label>
     </div>
 
@@ -311,7 +329,7 @@
         <button class="reader-zoom-btn" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ" disabled>−</button>
         <button class="reader-zoom-btn" id="zoomIn" aria-label="Phóng to" title="Phóng to">+</button>
       </div>
-      <button class="reader-download" id="readerDownload" aria-label="Tải tệp PDF về máy" title="Tải PDF về máy">
+      <button class="reader-download" id="readerDownload" aria-label="Tải tệp về máy" title="Tải tệp về máy">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>
         </svg>
@@ -543,13 +561,17 @@ async function saveIndex(){
 
 function formatFileMeta(book){
   const parts = [];
-  if(book.pageCount) parts.push(`${book.pageCount} trang`);
+  if(book.kind === 'pdf' && book.pageCount) parts.push(`${book.pageCount} trang`);
+  else if(book.sizeBytes) parts.push(`${(book.sizeBytes/(1024*1024)).toFixed(1)} MB`);
   if(book.addedAt){
     const d = new Date(book.addedAt);
     parts.push(d.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}));
   }
   return parts;
 }
+
+const KIND_LABEL = { pdf:'PDF', word:'WORD', ppt:'PPT', excel:'EXCEL' };
+const EXT_LABEL  = { pdf:'PDF', word:'DOC', ppt:'PPT', excel:'XLS' };
 
 function renderShelf(){
   shelfEl.innerHTML = '';
@@ -560,28 +582,44 @@ function renderShelf(){
   libraryIndex.forEach((book, i) => {
     const div = document.createElement('div');
     div.className = 'book';
-    const percent = book.pageCount ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
-    const status = percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc');
+    const kind = book.kind || 'pdf';
+    const isPdf = kind === 'pdf';
+    const percent = (isPdf && book.pageCount) ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
+    const status = isPdf
+      ? (percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc'))
+      : 'Chạm để tải về';
     const metaBits = formatFileMeta(book);
-    const metaHtml = metaBits.map((t, idx) =>
-      (idx>0 ? '<span class="dot"></span>' : '') + `<span>${escapeHtml(t)}</span>`
-    ).join('');
-    const coverStyle = book.cover
-      ? `background-image:url(${book.cover});`
-      : `background:${spineColor(i)};`;
-    const coverInner = book.cover ? '' : `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
+    const badgeCls = 'badge-' + kind;
+    const badgeHtml = `<span class="book-badge ${badgeCls}">${KIND_LABEL[kind]||'FILE'}</span>`;
+    const metaHtml = badgeHtml
+      + metaBits.map(t => '<span class="dot"></span><span>'+escapeHtml(t)+'</span>').join('')
+      + '<span class="dot"></span><span>' + escapeHtml(status) + '</span>';
+    let coverStyle = '', coverInner = '', coverExtraCls = '';
+    if(isPdf && book.cover){
+      coverStyle = `background-image:url(${book.cover});`;
+    } else if(isPdf){
+      coverStyle = `background:${spineColor(i)};`;
+      coverInner = `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
+    } else {
+      coverExtraCls = ' cover-' + kind;
+      coverInner = `<span class="cover-ext">${EXT_LABEL[kind]||'FILE'}</span>`;
+    }
+    const progressHtml = isPdf
+      ? `<div class="book-progress-bar"><span style="width:${percent}%"></span></div>`
+      : '';
     div.innerHTML = `
-      <div class="book-cover" style="${coverStyle}">${coverInner}</div>
+      <div class="book-cover${coverExtraCls}" style="${coverStyle}">${coverInner}</div>
       <div class="book-info">
         <div class="book-title">${escapeHtml(book.title)}</div>
-        <div class="book-meta">${metaHtml}${metaBits.length? '<span class="dot"></span>':''}<span>${status}</span></div>
-        <div class="book-progress-bar"><span style="width:${percent}%"></span></div>
+        <div class="book-meta">${metaHtml}</div>
+        ${progressHtml}
       </div>
       <button class="book-del" data-id="${book.id}" aria-label="Xóa">×</button>
     `;
     div.addEventListener('click', (e) => {
       if(e.target.closest('.book-del')) return;
-      openBook(book);
+      if(isPdf) openBook(book);
+      else downloadBook(book);
     });
     div.querySelector('.book-del').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -627,16 +665,32 @@ function fileToBase64(file){
   });
 }
 
+const KIND_BY_EXT = {
+  pdf:  { kind:'pdf',   mime:'application/pdf' },
+  doc:  { kind:'word',  mime:'application/msword' },
+  docx: { kind:'word',  mime:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+  ppt:  { kind:'ppt',   mime:'application/vnd.ms-powerpoint' },
+  pptx: { kind:'ppt',   mime:'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
+  xls:  { kind:'excel', mime:'application/vnd.ms-excel' },
+  xlsx: { kind:'excel', mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+};
+function detectFileKind(file){
+  const ext = (file.name.split('.').pop()||'').toLowerCase();
+  const info = KIND_BY_EXT[ext];
+  return info ? { ext, ...info } : null;
+}
+
 async function handleUpload(file){
   if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu mới.'); return; }
   if(!file) return;
-  if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
-    showErrorBanner('Sai định dạng tệp', 'Hiện tại ứng dụng chỉ hỗ trợ tệp PDF (.pdf). Vui lòng chọn lại.');
+  const info = detectFileKind(file);
+  if(!info){
+    showErrorBanner('Sai định dạng tệp', 'Chỉ hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx) và Excel (.xls/.xlsx). Vui lòng chọn lại.');
     return;
   }
   const sizeMB = file.size / (1024*1024);
   if(sizeMB > 180){
-    showErrorBanner('Tệp quá lớn', `Tệp của bạn khoảng ${sizeMB.toFixed(0)}MB. Trình duyệt di động khó xử lý tệp trên 180MB một cách ổn định. Vui lòng thử tệp nhỏ hơn hoặc nén lại PDF.`);
+    showErrorBanner('Tệp quá lớn', `Tệp của bạn khoảng ${sizeMB.toFixed(0)}MB. Trình duyệt di động khó xử lý tệp trên 180MB một cách ổn định. Vui lòng thử tệp nhỏ hơn hoặc nén lại.`);
     return;
   }
   if(storageMode === 'unknown'){
@@ -652,7 +706,7 @@ async function handleUpload(file){
     base64 = await fileToBase64(file);
   }catch(err){
     console.error('read-file-failed', err);
-    showErrorBanner('Không đọc được tệp', 'Trình duyệt không đọc được tệp này. Vui lòng thử chọn lại tệp hoặc dùng một tệp PDF khác.');
+    showErrorBanner('Không đọc được tệp', 'Trình duyệt không đọc được tệp này. Vui lòng thử chọn lại tệp.');
     return;
   }
 
@@ -664,12 +718,23 @@ async function handleUpload(file){
     });
   }catch(err){
     console.error('chunk-save-failed', err);
-    // roll back any chunks already written for this id
     for(let j=0;j<writtenCount;j++){ await safeDelete(`book:${id}:c${j}`); }
-    showErrorBanner('Lưu trữ thất bại', 'Không thể lưu tài liệu vào bộ nhớ dù đã thử chia nhỏ nhiều lần. Có thể do mất kết nối. Vui lòng kiểm tra mạng và thử lại, hoặc thử một tệp PDF nhỏ hơn.');
+    showErrorBanner('Lưu trữ thất bại', 'Không thể lưu tài liệu vào bộ nhớ dù đã thử chia nhỏ nhiều lần. Vui lòng kiểm tra dung lượng trống và thử lại.');
     return;
   }
   const numChunks = writtenCount;
+  const title = file.name.replace(new RegExp('\\.'+info.ext+'$','i'),'');
+
+  if(info.kind !== 'pdf'){
+    // Không cần render PDF cho các định dạng Office — chỉ lưu để tải lại.
+    const bookMeta = { id, title, kind:info.kind, ext:info.ext, mime:info.mime,
+      numChunks, addedAt: Date.now(), sizeBytes: file.size };
+    libraryIndex.unshift(bookMeta);
+    try{ await saveIndex(); }catch(_){}
+    renderShelf();
+    hideLoading();
+    return;
+  }
 
   let doc;
   try{
@@ -684,10 +749,11 @@ async function handleUpload(file){
   }
 
   try{
-    const title = file.name.replace(/\.pdf$/i,'');
     showLoading('Đang tạo ảnh bìa…');
     const cover = await renderCoverThumbnail(doc);
-    const bookMeta = { id, title, pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(), sizeBytes: file.size, cover };
+    const bookMeta = { id, title, kind:'pdf', ext:'pdf', mime:'application/pdf',
+      pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(),
+      sizeBytes: file.size, cover };
     libraryIndex.unshift(bookMeta);
     await saveIndex();
     renderShelf();
@@ -698,6 +764,46 @@ async function handleUpload(file){
     showErrorBanner('Không lưu được vào giá sách', 'Tài liệu đã lưu nhưng không thêm được vào danh sách. Vui lòng thử tải lại trang.');
   }
 }
+
+// Tải tệp bất kỳ (kể cả Office) từ bộ nhớ về máy người dùng.
+async function downloadBook(book){
+  const ext = book.ext || (book.kind === 'pdf' ? 'pdf' : 'bin');
+  const mime = book.mime || 'application/octet-stream';
+  const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.' + ext;
+  try{
+    showLoading('Đang chuẩn bị tệp để tải…');
+    const parts = [];
+    if(book.embedded){
+      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
+      if(!src) throw new Error('embedded-missing');
+      parts.push(base64ToBytes(src.base64));
+    } else {
+      for(let i=0;i<book.numChunks;i++){
+        const c = await safeGet(`book:${book.id}:c${i}`);
+        if(c === null) throw new Error('missing-chunk-'+i);
+        parts.push(base64ToBytes(c));
+        if(i % 3 === 0){
+          const pct = Math.round(((i+1)/book.numChunks)*100);
+          showLoading(`Đang chuẩn bị tệp để tải… ${pct}%`);
+          await sleep(0);
+        }
+      }
+    }
+    const blob = new Blob(parts, {type: mime});
+    hideLoading();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = safeName; a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
+  }catch(err){
+    console.error('download-failed', err);
+    hideLoading();
+    showErrorBanner('Không tải được tệp', 'Không thể ghép lại nội dung tệp từ bộ nhớ. Vui lòng thử lại.');
+  }
+}
+
 
 function base64ToBytes(base64){
   const binStr = atob(base64);
@@ -788,48 +894,29 @@ $('readerBack').addEventListener('click', closeReader);
 // string in a single JS string beyond what's necessary.
 async function downloadCurrentBook(){
   if(!currentBook) return;
-  const book = currentBook;
-  const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.pdf';
-  try{
-    showLoading('Đang chuẩn bị tệp để tải…');
-    const parts = [];
-    if(book.embedded){
-      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
-      if(!src) throw new Error('embedded-missing');
-      parts.push(base64ToBytes(src.base64));
-    } else {
-      for(let i=0;i<book.numChunks;i++){
-        const c = await safeGet(`book:${book.id}:c${i}`);
-        if(c === null) throw new Error('missing-chunk-'+i);
-        parts.push(base64ToBytes(c));
-        if(i % 3 === 0){
-          const pct = Math.round(((i+1)/book.numChunks)*100);
-          showLoading(`Đang chuẩn bị tệp để tải… ${pct}%`);
-          await sleep(0); // yield to UI thread
-        }
-      }
-    }
-    const blob = new Blob(parts, {type:'application/pdf'});
-    hideLoading();
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = safeName;
-    a.rel = 'noopener';
-    // iOS Safari: append to DOM before click so the download gesture is honored.
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 4000);
-  }catch(err){
-    console.error('download-failed', err);
-    showErrorBanner('Không tải được tệp', 'Không thể ghép lại nội dung PDF từ bộ nhớ. Vui lòng thử lại hoặc tải lên lại tệp.');
-  }
+  await downloadBook(currentBook);
 }
 $('readerDownload').addEventListener('click', downloadCurrentBook);
+
+// Điều chỉnh khung sách theo tỉ lệ trang (fit "contain") để trang ngang / slide
+// hiển thị đầy đủ trong màn hình, không bị cắt.
+async function fitBookFrameToPage(pageNum){
+  if(!currentPdfDoc) return;
+  try{
+    const page = await currentPdfDoc.getPage(pageNum);
+    const vp = page.getViewport({scale:1});
+    const aspect = vp.width / vp.height;
+    const stage = readerStage.getBoundingClientRect();
+    const availW = Math.max(200, stage.width - 24);
+    const availH = Math.max(200, stage.height - 12);
+    let w = availW, h = w / aspect;
+    if(h > availH){ h = availH; w = h * aspect; }
+    bookFrame.classList.add('fitted');
+    bookFrame.style.width = Math.round(w) + 'px';
+    bookFrame.style.height = Math.round(h) + 'px';
+  }catch(e){ /* ignore */ }
+}
+
 
 async function getPageImage(pageNum){
   if(pageImageCache.has(pageNum)) return pageImageCache.get(pageNum);
@@ -861,10 +948,13 @@ async function prefetchNeighbors(){
 
 async function renderCurrentPage(){
   updateIndicator();
+  await fitBookFrameToPage(currentPage);
   pageUnder.innerHTML = '';
   try{
     const url = await getPageImage(currentPage);
     pageUnder.style.backgroundImage = `url(${url})`;
+    pageUnder.style.backgroundSize = 'contain';
+    pageUnder.style.backgroundColor = 'var(--paper)';
   }catch(e){
     pageUnder.innerHTML = '<div class="page-placeholder">Không thể hiển thị trang này</div>';
   }
