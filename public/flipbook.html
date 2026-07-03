@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --bg:#1C0E0F;
@@ -274,6 +275,7 @@
   /* ---------- admin gate ---------- */
   body:not(.is-admin) #dropzone{ display:none !important; }
   body:not(.is-admin) .book-del{ display:none !important; }
+  body:not(.is-admin) #adminToggleBtn{ display:none !important; }
   body:not(.is-admin) .shelf-label .ro-note{ display:inline; }
   .shelf-label .ro-note{ display:none; color:#7C7361; font-weight:400; letter-spacing:0.05em; text-transform:none; margin-left:6px; }
   .admin-footer{
@@ -281,7 +283,7 @@
     text-transform:uppercase; color:#5C5546;
   }
   .admin-footer button{
-    background:none; border:none; color:#8A7F68; font:inherit; letter-spacing:inherit;
+    background:none; border:none; color:#5C5546; font:inherit; letter-spacing:inherit;
     text-transform:inherit; cursor:pointer; padding:6px 10px;
   }
   .admin-footer button:hover{ color:var(--gold-soft); }
@@ -291,6 +293,17 @@
     background:var(--gold); color:#241a06; font-size:10.5px; font-weight:700;
     letter-spacing:0.08em; vertical-align:middle;
   }
+  /* Auth modal */
+  .auth-form{ text-align:left; display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .auth-form label{ font-size:12px; color:#6B5A47; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
+  .auth-form input{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid #C9BFA6;
+    background:#FBF6EB; color:var(--ink); font-family:var(--body-font); font-size:14px;
+  }
+  .auth-form input:focus{ outline:2px solid var(--gold); border-color:var(--gold); }
+  .auth-msg{ font-size:12.5px; color:#8C1C1C; min-height:16px; text-align:center; margin-bottom:6px; }
+  .auth-toggle{ font-size:12.5px; color:#5A4B3C; text-align:center; margin-top:10px; }
+  .auth-toggle a{ color:#8C1C1C; text-decoration:underline; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -313,10 +326,11 @@
       </label>
     </div>
 
-    <div class="shelf-label">Kệ sách<span class="admin-badge">Quản trị</span><span class="ro-note">— khách chỉ xem</span></div>
+    <div class="shelf-label">Kệ sách<span class="admin-badge">Quản trị</span><span class="ro-note">— chỉ xem</span></div>
     <div class="shelf" id="shelf"></div>
     <div class="admin-footer">
-      <button id="adminToggleBtn" type="button">Quản trị</button>
+      <button id="adminLoginBtn" type="button">Đăng nhập quản trị</button>
+      <button id="adminToggleBtn" type="button">Thoát chế độ quản trị</button>
     </div>
   </div>
 
@@ -356,11 +370,37 @@
 
   <div class="modal-overlay hidden" id="modalOverlay">
     <div class="modal-card">
-      <h3 id="modalTitle">Xóa sách này?</h3>
-      <p id="modalBody">Tài liệu sẽ bị xóa khỏi giá sách của bạn trên thiết bị này.</p>
+      <h3 id="modalTitle">Xóa tài liệu này?</h3>
+      <p id="modalBody">Tài liệu sẽ bị xóa vĩnh viễn khỏi kho lưu trữ chung.</p>
       <div class="modal-actions">
         <button class="modal-btn cancel" id="modalCancel">Hủy</button>
         <button class="modal-btn confirm" id="modalConfirm">Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="authOverlay">
+    <div class="modal-card">
+      <h3 id="authTitle">Đăng nhập quản trị</h3>
+      <p id="authSub">Chỉ tài khoản quản trị mới có thể tải lên hoặc xóa tài liệu.</p>
+      <form class="auth-form" id="authForm" autocomplete="off">
+        <div>
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" required autocomplete="username">
+        </div>
+        <div>
+          <label for="authPassword">Mật khẩu</label>
+          <input type="password" id="authPassword" required minlength="6" autocomplete="current-password">
+        </div>
+      </form>
+      <div class="auth-msg" id="authMsg"></div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="authCancel" type="button">Hủy</button>
+        <button class="modal-btn confirm" id="authSubmit" type="button">Đăng nhập</button>
+      </div>
+      <div class="auth-toggle">
+        <span id="authToggleText">Chưa có tài khoản?</span>
+        <a id="authToggleLink">Đăng ký</a>
       </div>
     </div>
   </div>
