@@ -408,9 +408,13 @@
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const CHUNK_SIZE = 4000000; // base64 chars (~4MB) per chunk — IndexedDB handles this easily
-const INDEX_KEY = 'library-index';
-const SPINE_CLASSES = ['spine-a','spine-b','spine-c','spine-d'];
+// ---------- Supabase client ----------
+const SUPABASE_URL = 'https://nhqebvrhtwbvjhlbrzlt.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TLpjXPMrY9EJ25Fi91asZA_Wxume9SR';
+const SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'flipbook-auth' }
+});
+const BUCKET = 'documents';
 
 const $ = (id) => document.getElementById(id);
 const libraryEl = $('library'), shelfEl = $('shelf'), dropzone = $('dropzone');
@@ -421,124 +425,24 @@ const readerTitle = $('readerTitle'), pageIndicator = $('pageIndicator'), progre
 const loadingOverlay = $('loadingOverlay'), loadingText = $('loadingText');
 const modalOverlay = $('modalOverlay'), modalConfirm = $('modalConfirm'), modalCancel = $('modalCancel');
 
-let libraryIndex = [];
-let currentBook = null;      // {id, title, pageCount, lastPage}
+let libraryIndex = [];       // remote documents list
+let currentBook = null;      // {id, title, page_count, ...}
 let currentPdfDoc = null;
 let currentPage = 1;
 let pageImageCache = new Map();
 let progressSaveTimer = null;
-
-// ---------- storage helpers (IndexedDB-backed) ----------
-// Uses IndexedDB for real persistence across sessions. Falls back to in-memory
-// map only if IndexedDB is unavailable or blocked (e.g. Safari private mode).
-let storageMode = 'unknown'; // 'persistent' | 'memory' | 'unknown'
-const memoryStore = new Map();
-
-const IDB_NAME = 'flipbook-lib';
-const IDB_STORE = 'kv';
-let _idbPromise = null;
-function openIDB(){
-  if(_idbPromise) return _idbPromise;
-  _idbPromise = new Promise((resolve, reject) => {
-    if(typeof indexedDB === 'undefined'){ reject(new Error('no-indexeddb')); return; }
-    const req = indexedDB.open(IDB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error || new Error('idb-open-failed'));
-    req.onblocked = () => reject(new Error('idb-blocked'));
-  });
-  return _idbPromise;
-}
-function idbReq(mode, fn){
-  return openIDB().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE, mode);
-    const store = tx.objectStore(IDB_STORE);
-    const req = fn(store);
-    tx.oncomplete = () => resolve(req && 'result' in req ? req.result : undefined);
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error || new Error('idb-abort'));
-  }));
-}
+let isAdmin = false;         // derived from user_roles
 
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-
 function showLoading(msg){
   if(loadingText) loadingText.textContent = msg || 'Đang xử lý…';
   if(loadingOverlay) loadingOverlay.classList.remove('hidden');
 }
-function hideLoading(){
-  if(loadingOverlay) loadingOverlay.classList.add('hidden');
-}
+function hideLoading(){ if(loadingOverlay) loadingOverlay.classList.add('hidden'); }
 
-async function rawGet(key){
-  if(storageMode === 'memory') return memoryStore.has(key) ? memoryStore.get(key) : null;
-  const v = await idbReq('readonly', s => s.get(key));
-  return v === undefined ? null : v;
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-async function rawSet(key, value){
-  if(storageMode === 'memory'){ memoryStore.set(key, value); return {key}; }
-  await idbReq('readwrite', s => s.put(value, key));
-  return {key};
-}
-async function rawDelete(key){
-  if(storageMode === 'memory'){ memoryStore.delete(key); return {key, deleted:true}; }
-  await idbReq('readwrite', s => s.delete(key));
-  return {key, deleted:true};
-}
-
-async function safeGet(key){
-  try{ return await rawGet(key); }catch(e){ return null; }
-}
-async function safeSet(key, value, _shared=false, retries=3){
-  let lastErr = null;
-  for(let attempt=1; attempt<=retries; attempt++){
-    try{ return await rawSet(key, value); }
-    catch(e){ lastErr = e; if(attempt < retries) await sleep(300 * attempt); }
-  }
-  console.error('storage set failed', key, lastErr);
-  throw new Error('STORAGE_WRITE_FAILED: ' + (lastErr && lastErr.message ? lastErr.message : lastErr));
-}
-async function safeDelete(key){
-  try{ return await rawDelete(key); }catch(e){ return null; }
-}
-
-// Verify IndexedDB is actually usable right now (rules out Safari private mode / quota errors).
-async function persistentStorageHealthy(){
-  const testKey = 'preflight-' + Date.now();
-  try{
-    await idbReq('readwrite', s => s.put('ok', testKey));
-    await idbReq('readwrite', s => s.delete(testKey));
-    return true;
-  }catch(e){
-    console.error('persistent storage health check failed', e);
-    return false;
-  }
-}
-
-function renderStorageModeBanner(){
-  const old = document.getElementById('storageModeBanner');
-  if(old) old.remove();
-  if(storageMode !== 'memory') return;
-  const banner = document.createElement('div');
-  banner.id = 'storageModeBanner';
-  banner.style.cssText = 'max-width:520px;margin:0 auto 18px;padding:10px 14px;border-radius:10px;background:rgba(201,162,39,0.12);border:1px solid rgba(201,162,39,0.35);font-size:12.5px;color:#E9D9C4;text-align:center;line-height:1.5;';
-  banner.innerHTML = `⚠️ Chế độ tạm thời: lưu trữ vĩnh viễn hiện không phản hồi, tài liệu chỉ tồn tại trong phiên này và sẽ mất khi đóng ứng dụng. <span id="retryStorageLink" style="text-decoration:underline;cursor:pointer;color:var(--gold-soft);">Thử kết nối lại</span>`;
-  libraryEl.insertBefore(banner, shelfEl.previousElementSibling);
-  document.getElementById('retryStorageLink').addEventListener('click', async () => {
-    banner.style.opacity = '0.6';
-    const healthy = await persistentStorageHealthy();
-    if(healthy){
-      storageMode = 'persistent';
-      renderStorageModeBanner();
-    } else {
-      banner.style.opacity = '1';
-    }
-  });
-}
-
 function showErrorBanner(title, detail){
   hideLoading();
   const overlay = document.createElement('div');
@@ -555,48 +459,44 @@ function showErrorBanner(title, detail){
   overlay.querySelector('button').addEventListener('click', () => overlay.remove());
 }
 
-// Saves a large base64 string as sequentially-indexed chunks under book:{id}:c{n}.
-// If a piece is rejected by storage (e.g. exceeds an undocumented size limit), it is
-// split in half and each half is retried recursively, down to a safe minimum size.
-// This guarantees the largest possible file gets saved regardless of the true limit.
-const MIN_PIECE_SIZE = 60000; // ~60KB floor — below this we give up and surface the error
-async function saveChunksAdaptive(id, base64, onProgress){
-  const initialPieces = [];
-  for(let i=0;i<base64.length;i+=CHUNK_SIZE){
-    initialPieces.push(base64.slice(i, i+CHUNK_SIZE));
-  }
-  const estTotal = initialPieces.length;
-  let writtenIndex = 0;
-
-  async function writePiece(str, depth){
-    try{
-      await safeSet(`book:${id}:c${writtenIndex}`, str, false, 3);
-      writtenIndex++;
-      if(onProgress) onProgress(writtenIndex, Math.max(estTotal, writtenIndex));
-    }catch(e){
-      if(str.length <= MIN_PIECE_SIZE || depth > 8){
-        throw e;
-      }
-      await sleep(500); // pause before retrying with smaller pieces
-      const mid = Math.floor(str.length/2);
-      await writePiece(str.slice(0,mid), depth+1);
-      await writePiece(str.slice(mid), depth+1);
-    }
-  }
-
-  for(const piece of initialPieces){
-    await writePiece(piece, 0);
-  }
-  return writtenIndex;
+// ---------- reading progress (per-viewer, local) ----------
+// Chỉ vị trí đọc mới lưu ở localStorage — danh sách tài liệu KHÔNG bao giờ lưu ở local.
+function getProgress(bookId){
+  try{ return parseInt(localStorage.getItem('progress:'+bookId)||'1', 10) || 1; }catch(_){ return 1; }
+}
+function setProgress(bookId, page){
+  try{ localStorage.setItem('progress:'+bookId, String(page)); }catch(_){}
 }
 
-// ---------- library ----------
+// ---------- library (remote) ----------
 async function loadIndex(){
-  const raw = await safeGet(INDEX_KEY);
-  libraryIndex = raw ? JSON.parse(raw) : [];
-}
-async function saveIndex(){
-  await safeSet(INDEX_KEY, JSON.stringify(libraryIndex));
+  const { data, error } = await SB
+    .from('documents')
+    .select('id,title,kind,ext,mime,page_count,size_bytes,storage_path,cover_path,created_at')
+    .order('created_at', { ascending: false });
+  if(error){ console.error('load-documents-failed', error); libraryIndex = []; return; }
+  libraryIndex = (data || []).map(row => ({
+    id: row.id,
+    title: row.title,
+    kind: row.kind,
+    ext: row.ext,
+    mime: row.mime,
+    pageCount: row.page_count,
+    sizeBytes: row.size_bytes,
+    storagePath: row.storage_path,
+    coverPath: row.cover_path,
+    addedAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    lastPage: getProgress(row.id),
+    coverUrl: null,
+  }));
+  // Resolve cover URLs in parallel (signed URLs — bucket is not public).
+  await Promise.all(libraryIndex.map(async b => {
+    if(!b.coverPath) return;
+    try{
+      const { data: signed } = await SB.storage.from(BUCKET).createSignedUrl(b.coverPath, 3600);
+      if(signed && signed.signedUrl) b.coverUrl = signed.signedUrl;
+    }catch(_){}
+  }));
 }
 
 function formatFileMeta(book){
@@ -616,7 +516,7 @@ const EXT_LABEL  = { pdf:'PDF', word:'DOC', ppt:'PPT', excel:'XLS' };
 function renderShelf(){
   shelfEl.innerHTML = '';
   if(libraryIndex.length === 0){
-    shelfEl.innerHTML = '<div class="empty-shelf">Giá sách còn trống — tải lên tài liệu đầu tiên của bạn.</div>';
+    shelfEl.innerHTML = '<div class="empty-shelf">Chưa có tài liệu nào được đăng.</div>';
     return;
   }
   libraryIndex.forEach((book, i) => {
@@ -635,8 +535,8 @@ function renderShelf(){
       + metaBits.map(t => '<span class="dot"></span><span>'+escapeHtml(t)+'</span>').join('')
       + '<span class="dot"></span><span>' + escapeHtml(status) + '</span>';
     let coverStyle = '', coverInner = '', coverExtraCls = '';
-    if(isPdf && book.cover){
-      coverStyle = `background-image:url(${book.cover});`;
+    if(isPdf && book.coverUrl){
+      coverStyle = `background-image:url(${book.coverUrl});`;
     } else if(isPdf){
       coverStyle = `background:${spineColor(i)};`;
       coverInner = `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
@@ -672,39 +572,24 @@ function spineColor(i){
   const palette = ['#A6242A','#7A1418','#8C1C1C','#5C1015','#932025'];
   return palette[i % palette.length];
 }
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 
-// Render page 1 of a pdf as a small JPEG data URL to use as the cover thumbnail.
-async function renderCoverThumbnail(pdfDoc){
+// Render page 1 of a pdf as a small JPEG blob to use as the cover thumbnail.
+async function renderCoverThumbnailBlob(pdfDoc){
   try{
     const page = await pdfDoc.getPage(1);
     const baseViewport = page.getViewport({scale:1});
-    const targetWidth = 220;
+    const targetWidth = 240;
     const scale = targetWidth / baseViewport.width;
     const viewport = page.getViewport({scale});
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width; canvas.height = viewport.height;
     const ctx = canvas.getContext('2d');
     await page.render({canvasContext: ctx, viewport}).promise;
-    return canvas.toDataURL('image/jpeg', 0.7);
-  }catch(e){
-    console.warn('cover-render-failed', e);
-    return null;
-  }
+    return await new Promise(res => canvas.toBlob(b => res(b), 'image/jpeg', 0.72));
+  }catch(e){ console.warn('cover-render-failed', e); return null; }
 }
 
 // ---------- upload ----------
-function fileToBase64(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 const KIND_BY_EXT = {
   pdf:  { kind:'pdf',   mime:'application/pdf' },
   doc:  { kind:'word',  mime:'application/msword' },
@@ -721,115 +606,98 @@ function detectFileKind(file){
 }
 
 async function handleUpload(file){
-  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu mới.'); return; }
+  if(!isAdmin){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu.'); return; }
   if(!file) return;
   const info = detectFileKind(file);
   if(!info){
-    showErrorBanner('Sai định dạng tệp', 'Chỉ hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx) và Excel (.xls/.xlsx). Vui lòng chọn lại.');
+    showErrorBanner('Sai định dạng tệp', 'Chỉ hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx) và Excel (.xls/.xlsx).');
     return;
   }
   const sizeMB = file.size / (1024*1024);
-  if(sizeMB > 180){
-    showErrorBanner('Tệp quá lớn', `Tệp của bạn khoảng ${sizeMB.toFixed(0)}MB. Trình duyệt di động khó xử lý tệp trên 180MB một cách ổn định. Vui lòng thử tệp nhỏ hơn hoặc nén lại.`);
+  if(sizeMB > 200){
+    showErrorBanner('Tệp quá lớn', `Tệp khoảng ${sizeMB.toFixed(0)}MB, vượt hạn mức 200MB.`);
     return;
-  }
-  if(storageMode === 'unknown'){
-    showLoading('Đang kiểm tra bộ nhớ lưu trữ…');
-    storageMode = (await persistentStorageHealthy()) ? 'persistent' : 'memory';
-    renderStorageModeBanner();
   }
 
   const id = 'b' + Date.now() + Math.floor(Math.random()*1000);
-  let base64;
-  try{
-    showLoading('Đang đọc tệp…');
-    base64 = await fileToBase64(file);
-  }catch(err){
-    console.error('read-file-failed', err);
-    showErrorBanner('Không đọc được tệp', 'Trình duyệt không đọc được tệp này. Vui lòng thử chọn lại tệp.');
-    return;
-  }
-
-  let writtenCount = 0;
-  try{
-    writtenCount = await saveChunksAdaptive(id, base64, (done, estTotal) => {
-      const pct = Math.min(99, Math.round((done/estTotal)*100));
-      showLoading(`Đang lưu tài liệu… ${pct}% (đã lưu ${done} phần)`);
-    });
-  }catch(err){
-    console.error('chunk-save-failed', err);
-    for(let j=0;j<writtenCount;j++){ await safeDelete(`book:${id}:c${j}`); }
-    showErrorBanner('Lưu trữ thất bại', 'Không thể lưu tài liệu vào bộ nhớ dù đã thử chia nhỏ nhiều lần. Vui lòng kiểm tra dung lượng trống và thử lại.');
-    return;
-  }
-  const numChunks = writtenCount;
+  const storagePath = `files/${id}.${info.ext}`;
   const title = file.name.replace(new RegExp('\\.'+info.ext+'$','i'),'');
 
-  if(info.kind !== 'pdf'){
-    // Không cần render PDF cho các định dạng Office — chỉ lưu để tải lại.
-    const bookMeta = { id, title, kind:info.kind, ext:info.ext, mime:info.mime,
-      numChunks, addedAt: Date.now(), sizeBytes: file.size };
-    libraryIndex.unshift(bookMeta);
-    try{ await saveIndex(); }catch(_){}
-    renderShelf();
-    hideLoading();
+  // 1) Upload the main file
+  try{
+    showLoading('Đang tải tệp lên máy chủ…');
+    const { error: upErr } = await SB.storage.from(BUCKET).upload(storagePath, file, {
+      contentType: info.mime, upsert: false,
+    });
+    if(upErr) throw upErr;
+  }catch(err){
+    console.error('upload-failed', err);
+    showErrorBanner('Tải lên thất bại', (err && err.message) || 'Không thể tải tệp lên Supabase Storage.');
     return;
   }
 
-  let doc;
+  // 2) For PDF, parse and render cover
+  let pageCount = null;
+  let coverPath = null;
+  if(info.kind === 'pdf'){
+    let doc = null;
+    try{
+      showLoading('Đang phân tích tài liệu…');
+      const buf = await file.arrayBuffer();
+      doc = await pdfjsLib.getDocument({data: new Uint8Array(buf)}).promise;
+      pageCount = doc.numPages;
+    }catch(err){
+      console.error('pdf-parse-failed', err);
+      await SB.storage.from(BUCKET).remove([storagePath]).catch(()=>{});
+      showErrorBanner('Không đọc được nội dung PDF', 'Tệp có thể bị hỏng hoặc mã hóa. Vui lòng thử tệp khác.');
+      return;
+    }
+    try{
+      showLoading('Đang tạo ảnh bìa…');
+      const coverBlob = await renderCoverThumbnailBlob(doc);
+      if(coverBlob){
+        coverPath = `covers/${id}.jpg`;
+        const { error: covErr } = await SB.storage.from(BUCKET).upload(coverPath, coverBlob, {
+          contentType:'image/jpeg', upsert: true,
+        });
+        if(covErr){ console.warn('cover-upload-failed', covErr); coverPath = null; }
+      }
+    }catch(e){ console.warn('cover-step-failed', e); }
+  }
+
+  // 3) Insert metadata row
   try{
-    showLoading('Đang phân tích tài liệu…');
-    const bytes = base64ToBytes(base64);
-    doc = await pdfjsLib.getDocument({data: bytes}).promise;
+    showLoading('Đang lưu thông tin tài liệu…');
+    const { error: insErr } = await SB.from('documents').insert({
+      id, title, kind: info.kind, ext: info.ext, mime: info.mime,
+      page_count: pageCount, size_bytes: file.size,
+      storage_path: storagePath, cover_path: coverPath,
+    });
+    if(insErr) throw insErr;
   }catch(err){
-    console.error('pdf-parse-failed', err);
-    for(let j=0;j<numChunks;j++){ await safeDelete(`book:${id}:c${j}`); }
-    showErrorBanner('Không đọc được nội dung PDF', 'Tệp có thể bị hỏng, được mã hóa/khóa mật khẩu, hoặc không phải PDF chuẩn. Vui lòng thử một tệp khác.');
+    console.error('insert-doc-failed', err);
+    await SB.storage.from(BUCKET).remove([storagePath, coverPath].filter(Boolean)).catch(()=>{});
+    showErrorBanner('Lưu tài liệu thất bại', (err && err.message) || 'Không thể lưu thông tin vào cơ sở dữ liệu.');
     return;
   }
 
-  try{
-    showLoading('Đang tạo ảnh bìa…');
-    const cover = await renderCoverThumbnail(doc);
-    const bookMeta = { id, title, kind:'pdf', ext:'pdf', mime:'application/pdf',
-      pageCount: doc.numPages, numChunks, lastPage: 1, addedAt: Date.now(),
-      sizeBytes: file.size, cover };
-    libraryIndex.unshift(bookMeta);
-    await saveIndex();
-    renderShelf();
-    hideLoading();
-    openBookWithDoc(bookMeta, doc);
-  }catch(err){
-    console.error('index-save-failed', err);
-    showErrorBanner('Không lưu được vào giá sách', 'Tài liệu đã lưu nhưng không thêm được vào danh sách. Vui lòng thử tải lại trang.');
-  }
+  await loadIndex();
+  renderShelf();
+  hideLoading();
 }
 
-// Tải tệp bất kỳ (kể cả Office) từ bộ nhớ về máy người dùng.
+// ---------- download ----------
+async function downloadBlobFromStorage(path){
+  const { data, error } = await SB.storage.from(BUCKET).download(path);
+  if(error) throw error;
+  return data; // Blob
+}
 async function downloadBook(book){
   const ext = book.ext || (book.kind === 'pdf' ? 'pdf' : 'bin');
-  const mime = book.mime || 'application/octet-stream';
   const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.' + ext;
   try{
     showLoading('Đang chuẩn bị tệp để tải…');
-    const parts = [];
-    if(book.embedded){
-      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
-      if(!src) throw new Error('embedded-missing');
-      parts.push(base64ToBytes(src.base64));
-    } else {
-      for(let i=0;i<book.numChunks;i++){
-        const c = await safeGet(`book:${book.id}:c${i}`);
-        if(c === null) throw new Error('missing-chunk-'+i);
-        parts.push(base64ToBytes(c));
-        if(i % 3 === 0){
-          const pct = Math.round(((i+1)/book.numChunks)*100);
-          showLoading(`Đang chuẩn bị tệp để tải… ${pct}%`);
-          await sleep(0);
-        }
-      }
-    }
-    const blob = new Blob(parts, {type: mime});
+    const blob = await downloadBlobFromStorage(book.storagePath);
     hideLoading();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -840,39 +708,37 @@ async function downloadBook(book){
   }catch(err){
     console.error('download-failed', err);
     hideLoading();
-    showErrorBanner('Không tải được tệp', 'Không thể ghép lại nội dung tệp từ bộ nhớ. Vui lòng thử lại.');
+    showErrorBanner('Không tải được tệp', (err && err.message) || 'Không lấy được tệp từ Supabase Storage.');
   }
-}
-
-
-function base64ToBytes(base64){
-  const binStr = atob(base64);
-  const len = binStr.length;
-  const bytes = new Uint8Array(len);
-  for(let i=0;i<len;i++) bytes[i] = binStr.charCodeAt(i);
-  return bytes;
 }
 
 // ---------- delete ----------
 let pendingDelete = null;
 function confirmDeleteBook(book){
-  if(!isAdminUnlocked()){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể xóa tài liệu.'); return; }
+  if(!isAdmin){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể xóa tài liệu.'); return; }
   pendingDelete = book;
   modalOverlay.classList.remove('hidden');
 }
 modalCancel.addEventListener('click', () => { modalOverlay.classList.add('hidden'); pendingDelete = null; });
 modalConfirm.addEventListener('click', async () => {
   if(!pendingDelete) return;
+  if(!isAdmin){ modalOverlay.classList.add('hidden'); pendingDelete = null; return; }
   const book = pendingDelete;
   modalOverlay.classList.add('hidden');
   showLoading('Đang xóa…');
-  if(!book.embedded){
-    for(let i=0;i<book.numChunks;i++){
-      await safeDelete(`book:${book.id}:c${i}`);
-    }
+  try{
+    const paths = [book.storagePath, book.coverPath].filter(Boolean);
+    if(paths.length) await SB.storage.from(BUCKET).remove(paths);
+    const { error } = await SB.from('documents').delete().eq('id', book.id);
+    if(error) throw error;
+  }catch(err){
+    console.error('delete-failed', err);
+    hideLoading();
+    showErrorBanner('Xóa thất bại', (err && err.message) || 'Không xóa được tài liệu.');
+    pendingDelete = null;
+    return;
   }
-  libraryIndex = libraryIndex.filter(b => b.id !== book.id);
-  await saveIndex();
+  await loadIndex();
   renderShelf();
   hideLoading();
   pendingDelete = null;
@@ -882,28 +748,15 @@ modalConfirm.addEventListener('click', async () => {
 async function openBook(book){
   showLoading('Đang mở sách…');
   try{
-    let base64;
-    if(book.embedded){
-      // Built-in book shipped inside the app itself — never touches storage, always available.
-      const src = (window.__EMBEDDED_BOOKS__ || []).find(b => b.id === book.id);
-      if(!src) throw new Error('embedded-book-missing');
-      base64 = src.base64;
-    } else {
-      base64 = '';
-      for(let i=0;i<book.numChunks;i++){
-        const c = await safeGet(`book:${book.id}:c${i}`);
-        if(c === null) throw new Error('missing-chunk');
-        base64 += c;
-      }
-    }
-    const bytes = base64ToBytes(base64);
-    const doc = await pdfjsLib.getDocument({data: bytes}).promise;
+    const blob = await downloadBlobFromStorage(book.storagePath);
+    const buf = await blob.arrayBuffer();
+    const doc = await pdfjsLib.getDocument({data: new Uint8Array(buf)}).promise;
     hideLoading();
     openBookWithDoc(book, doc);
   }catch(err){
     console.error(err);
     hideLoading();
-    showErrorBanner('Không mở được sách', 'Dữ liệu tài liệu này có thể đã bị thiếu hoặc lỗi trong bộ nhớ. Bạn có thể xóa và tải lên lại tệp PDF.');
+    showErrorBanner('Không mở được sách', 'Không tải được nội dung tài liệu từ máy chủ. Vui lòng thử lại.');
   }
 }
 
@@ -928,10 +781,6 @@ function closeReader(){
 }
 $('readerBack').addEventListener('click', closeReader);
 
-// Reconstruct the original PDF bytes from stored chunks (or embedded base64) and
-// stream them to the user as a download. Works for arbitrary large files because
-// each chunk is written straight into a Blob without keeping the full base64
-// string in a single JS string beyond what's necessary.
 async function downloadCurrentBook(){
   if(!currentBook) return;
   await downloadBook(currentBook);
@@ -956,7 +805,6 @@ async function fitBookFrameToPage(pageNum){
     bookFrame.style.height = Math.round(h) + 'px';
   }catch(e){ /* ignore */ }
 }
-
 
 async function getPageImage(pageNum){
   if(pageImageCache.has(pageNum)) return pageImageCache.get(pageNum);
@@ -1013,12 +861,12 @@ function saveProgress(){
   const idx = libraryIndex.findIndex(b => b.id === currentBook.id);
   if(idx>=0) libraryIndex[idx].lastPage = currentPage;
   clearTimeout(progressSaveTimer);
-  progressSaveTimer = setTimeout(() => { saveIndex(); }, 500);
+  progressSaveTimer = setTimeout(() => { setProgress(currentBook.id, currentPage); }, 400);
 }
 
 // ---------- flip gesture ----------
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let drag = null; // {startX, direction, active}
+let drag = null;
 
 function canGo(direction){
   if(!currentPdfDoc) return false;
@@ -1084,7 +932,7 @@ function programmaticFlip(direction){
 let zoomState = { scale:1, panX:0, panY:0 };
 let hiResBoost = false;
 let boostTimer = null;
-const activePointers = new Map(); // pointerId -> {x,y}
+const activePointers = new Map();
 let pinchStart = null;
 let panStart = null;
 const zoomInBtn = $('zoomIn'), zoomOutBtn = $('zoomOut');
@@ -1128,10 +976,7 @@ function scheduleResolutionBoost(){
   clearTimeout(boostTimer);
   boostTimer = setTimeout(() => {
     hiResBoost = shouldBoost;
-    if(currentPdfDoc){
-      pageImageCache.clear();
-      renderCurrentPage();
-    }
+    if(currentPdfDoc){ pageImageCache.clear(); renderCurrentPage(); }
   }, 160);
 }
 function resetZoom(){
@@ -1142,7 +987,6 @@ function resetZoom(){
 zoomInBtn.addEventListener('click', () => setZoom(zoomState.scale * 1.5));
 zoomOutBtn.addEventListener('click', () => setZoom(zoomState.scale / 1.5));
 
-// ---------- unified pointer: pinch, pan (when zoomed), or flip drag ----------
 readerStage.addEventListener('pointerdown', (e) => {
   activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   try { readerStage.setPointerCapture(e.pointerId); } catch(_){}
@@ -1173,7 +1017,6 @@ readerStage.addEventListener('pointermove', (e) => {
     const a = pts[0], b = pts[1];
     const dist = Math.hypot(a.x-b.x, a.y-b.y);
     const newScale = Math.min(4, Math.max(1, pinchStart.scale * (dist / pinchStart.dist)));
-    // Restore focal state then re-apply zoom around the original focal point.
     zoomState.scale = pinchStart.scale;
     zoomState.panX = pinchStart.panX;
     zoomState.panY = pinchStart.panY;
@@ -1215,7 +1058,6 @@ function endDrag(e){
 readerStage.addEventListener('pointerup', endDrag);
 readerStage.addEventListener('pointercancel', endDrag);
 
-// Double-tap / double-click to toggle zoom
 let lastTapAt = 0, lastTapX = 0, lastTapY = 0;
 readerStage.addEventListener('click', (e) => {
   const now = Date.now();
@@ -1230,7 +1072,6 @@ readerStage.addEventListener('click', (e) => {
   }
 }, true);
 
-// Wheel: Ctrl+wheel to zoom (desktop)
 readerStage.addEventListener('wheel', (e) => {
   if(!e.ctrlKey && !e.metaKey) return;
   e.preventDefault();
@@ -1248,13 +1089,12 @@ document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeReader();
 });
 
-// ---------- resize / orientation handling ----------
 let resizeTimer = null;
 window.addEventListener('resize', () => {
   if(readerEl.classList.contains('hidden') || !currentPdfDoc) return;
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    pageImageCache.clear(); // cached images sized for previous viewport
+    pageImageCache.clear();
     renderCurrentPage();
   }, 250);
 });
@@ -1276,89 +1116,115 @@ dropzone.addEventListener('drop', (e) => {
   handleUpload(file);
 });
 
-// ---------- init ----------
-function seedEmbeddedBooks(){
-  const embedded = window.__EMBEDDED_BOOKS__ || [];
-  embedded.forEach(src => {
-    if(!libraryIndex.some(b => b.id === src.id)){
-      libraryIndex.unshift({
-        id: src.id, title: src.title, pageCount: src.pageCount,
-        numChunks: 0, lastPage: 1, addedAt: Date.now(), embedded: true
-      });
-    }
-  });
-}
+// ---------- admin (Supabase auth + role) ----------
+const authOverlay = $('authOverlay');
+const authEmail = $('authEmail'), authPassword = $('authPassword'), authMsg = $('authMsg');
+const authSubmit = $('authSubmit'), authCancel = $('authCancel');
+const authTitle = $('authTitle'), authSub = $('authSub');
+const authToggleText = $('authToggleText'), authToggleLink = $('authToggleLink');
+let authMode = 'signin'; // 'signin' | 'signup'
 
-// ---------- admin mode (chỉ chủ sở hữu mới upload/xóa) ----------
-// Đổi mật khẩu ở dòng dưới. Đây là cổng khóa phía client cho site tĩnh — đủ để
-// ngăn khách xóa/upload trên trình duyệt của họ, không phải bảo mật tuyệt đối.
-const ADMIN_PASSWORD = 'banadmin@2026';
-const ADMIN_FLAG_KEY = 'flipbook-admin-unlocked';
-function isAdminUnlocked(){
-  try{ return localStorage.getItem(ADMIN_FLAG_KEY) === '1'; }catch(_){ return false; }
-}
-function applyAdminMode(){
-  document.body.classList.toggle('is-admin', isAdminUnlocked());
-  const btn = document.getElementById('adminToggleBtn');
-  if(btn) btn.textContent = isAdminUnlocked() ? 'Thoát chế độ quản trị' : 'Quản trị';
-}
-document.getElementById('adminToggleBtn')?.addEventListener('click', () => {
-  if(isAdminUnlocked()){
-    try{ localStorage.removeItem(ADMIN_FLAG_KEY); }catch(_){ }
-    applyAdminMode();
-    renderShelf();
-    return;
-  }
-  const pwd = prompt('Nhập mật khẩu quản trị để chỉnh sửa giá sách:');
-  if(pwd === null) return;
-  if(pwd === ADMIN_PASSWORD){
-    try{ localStorage.setItem(ADMIN_FLAG_KEY, '1'); }catch(_){ }
-    applyAdminMode();
-    renderShelf();
+function refreshAuthModeUI(){
+  if(authMode === 'signin'){
+    authTitle.textContent = 'Đăng nhập quản trị';
+    authSub.textContent = 'Chỉ tài khoản quản trị mới có thể tải lên, sửa hoặc xóa tài liệu.';
+    authSubmit.textContent = 'Đăng nhập';
+    authToggleText.textContent = 'Chưa có tài khoản quản trị?';
+    authToggleLink.textContent = 'Đăng ký';
   } else {
-    alert('Mật khẩu không đúng.');
+    authTitle.textContent = 'Đăng ký quản trị';
+    authSub.textContent = 'Tài khoản đầu tiên đăng ký sẽ được cấp quyền quản trị tự động.';
+    authSubmit.textContent = 'Đăng ký';
+    authToggleText.textContent = 'Đã có tài khoản?';
+    authToggleLink.textContent = 'Đăng nhập';
+  }
+  authMsg.textContent = '';
+}
+authToggleLink.addEventListener('click', () => {
+  authMode = (authMode === 'signin') ? 'signup' : 'signin';
+  refreshAuthModeUI();
+});
+authCancel.addEventListener('click', () => { authOverlay.classList.add('hidden'); });
+authSubmit.addEventListener('click', async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  if(!email || password.length < 6){ authMsg.textContent = 'Vui lòng nhập email và mật khẩu tối thiểu 6 ký tự.'; return; }
+  authSubmit.disabled = true; authMsg.textContent = 'Đang xử lý…';
+  try{
+    if(authMode === 'signup'){
+      const emailRedirectTo = window.location.origin + window.location.pathname;
+      const { error } = await SB.auth.signUp({ email, password, options: { emailRedirectTo } });
+      if(error) throw error;
+      // Try to sign in immediately (works if email confirmation is disabled).
+      const { error: siErr } = await SB.auth.signInWithPassword({ email, password });
+      if(siErr){
+        authMsg.textContent = 'Đăng ký thành công. Vui lòng xác nhận email rồi đăng nhập lại.';
+        authMode = 'signin'; refreshAuthModeUI();
+        return;
+      }
+    } else {
+      const { error } = await SB.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+    }
+    // Attempt to claim admin role (no-op if an admin already exists).
+    try{ await SB.rpc('claim_first_admin'); }catch(_){}
+    authOverlay.classList.add('hidden');
+    await refreshAuthState();
+    await loadIndex();
+    renderShelf();
+    if(!isAdmin){
+      showErrorBanner('Chưa được cấp quyền', 'Tài khoản của bạn không phải quản trị. Liên hệ quản trị viên hiện tại để được cấp quyền.');
+    }
+  }catch(err){
+    console.error('auth-failed', err);
+    authMsg.textContent = (err && err.message) || 'Đăng nhập thất bại.';
+  }finally{
+    authSubmit.disabled = false;
   }
 });
-applyAdminMode();
 
-(async function init(){
-  showLoading('Đang mở giá sách…');
-  storageMode = (await persistentStorageHealthy()) ? 'persistent' : 'memory';
-  if(storageMode === 'persistent'){
-    await loadIndex();
+$('adminLoginBtn').addEventListener('click', () => {
+  authMode = 'signin'; refreshAuthModeUI();
+  authEmail.value = ''; authPassword.value = '';
+  authOverlay.classList.remove('hidden');
+  setTimeout(() => authEmail.focus(), 50);
+});
+$('adminToggleBtn').addEventListener('click', async () => {
+  await SB.auth.signOut();
+  await refreshAuthState();
+  renderShelf();
+});
+
+async function refreshAuthState(){
+  isAdmin = false;
+  const { data: { session } } = await SB.auth.getSession();
+  if(session && session.user){
+    try{
+      const { data, error } = await SB
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      if(!error && data) isAdmin = true;
+    }catch(_){}
   }
-  seedEmbeddedBooks();
-  renderStorageModeBanner();
+  document.body.classList.toggle('is-admin', isAdmin);
+}
+
+SB.auth.onAuthStateChange(async () => {
+  await refreshAuthState();
+  renderShelf();
+});
+
+// ---------- init ----------
+(async function init(){
+  showLoading('Đang mở kệ sách…');
+  await refreshAuthState();
+  await loadIndex();
   renderShelf();
   hideLoading();
-  // Backfill covers for books uploaded before covers existed — done lazily in background.
-  backfillCovers();
 })();
-
-async function backfillCovers(){
-  const missing = libraryIndex.filter(b => !b.cover && !b.embedded && b.numChunks);
-  if(missing.length === 0) return;
-  for(const book of missing){
-    try{
-      let base64 = '';
-      for(let i=0;i<book.numChunks;i++){
-        const c = await safeGet(`book:${book.id}:c${i}`);
-        if(c === null){ base64 = null; break; }
-        base64 += c;
-      }
-      if(!base64) continue;
-      const doc = await pdfjsLib.getDocument({data: base64ToBytes(base64)}).promise;
-      const cover = await renderCoverThumbnail(doc);
-      if(cover){
-        book.cover = cover;
-        const idx = libraryIndex.findIndex(b => b.id === book.id);
-        if(idx>=0) libraryIndex[idx].cover = cover;
-      }
-    }catch(e){ console.warn('backfill-failed', book.id, e); }
-  }
-  await saveIndex();
-  renderShelf();
-}
 </script>
 </body>
 </html>
