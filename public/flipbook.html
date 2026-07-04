@@ -827,7 +827,7 @@ async function downloadBook(book){
     console.error('download-failed', err); hideLoading();
     showInfo('Không tải được tệp', (err&&err.message)||'Lỗi tải tệp.');
   }
-});
+}
 
 // ---------- Reader ----------
 async function openBook(book){
