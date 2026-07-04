@@ -3,593 +3,519 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Văn phòng Đảng ủy xã Bà Nà — Tài liệu lật trang</title>
+<title>Thư viện tài liệu số — Văn phòng Đảng ủy xã Bà Nà</title>
+<link rel="icon" type="image/png" href="/logo-bana.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
-    --bg:#1C0E0F;
-    --bg-2:#2E1315;
-    --spine-a:#A6242A;
-    --spine-b:#7A1418;
-    --spine-c:#8C1C1C;
-    --spine-d:#5C1015;
-    --paper:#F6EEE1;
-    --paper-shadow:#E6D9C2;
-    --ink:#3D2B1F;
+    --burgundy:#7A1A1F;
+    --burgundy-dark:#5C1015;
+    --navy:#0F2A44;
+    --navy-2:#173B5C;
+    --cream:#FBF6EB;
+    --paper:#FFFDF7;
     --gold:#C9A227;
     --gold-soft:#E7CE86;
+    --ink:#2A2118;
+    --muted:#6B6153;
+    --line:#E4DDCA;
     --danger:#8C1C1C;
-    --ui-font:'Space Grotesk',sans-serif;
-    --display-font:'Fraunces',serif;
-    --body-font:'Source Serif 4',serif;
+    --bg:#F4EFE2;
+    --font:'Be Vietnam Pro','Inter',system-ui,sans-serif;
+    --display:'Fraunces',serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;height:100%;background:var(--bg);font-family:var(--ui-font);color:var(--paper);overscroll-behavior:none;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);}
   body{min-height:100vh;}
-  button{font-family:inherit;}
-  ::selection{background:var(--gold-soft);color:var(--ink);}
+  button,input,select{font-family:inherit;}
+  a{color:var(--burgundy);}
 
-  /* ---------- Library view ---------- */
-  #library{
-    min-height:100vh;
-    padding:28px 18px 60px;
-    background:
-      radial-gradient(ellipse at top, rgba(201,162,39,0.10), transparent 55%),
-      var(--bg);
-  }
-  .lib-header{ text-align:center; margin-bottom:22px; padding-top:4px; }
-  .lib-star{ color:var(--gold); font-size:15px; letter-spacing:0.4em; margin-bottom:10px; opacity:0.9; }
-  .lib-title{
-    font-family:var(--display-font); font-weight:700; font-style:normal;
-    font-size:21px; line-height:1.35; margin:0; color:var(--gold-soft);
-    text-transform:uppercase; letter-spacing:0.02em;
-  }
-  .lib-rule{
-    width:56px; height:2px; background:var(--gold); margin:12px auto; opacity:0.8;
-  }
-  .lib-sub{
-    font-family:var(--body-font); font-style:italic; font-size:14.5px; color:#E9D9C4; margin-top:2px;
-  }
-
-  .dropzone{
-    border:1.5px dashed rgba(201,162,39,0.5);
-    border-radius:14px;
-    padding:22px 16px;
+  /* ---------- Header ---------- */
+  .site-header{
+    background:linear-gradient(180deg,#FFFFFF, #F5EED9);
+    border-bottom:3px solid var(--burgundy);
+    padding:22px 16px 18px;
     text-align:center;
-    margin:22px 0 30px;
-    background:rgba(201,162,39,0.05);
-    transition:background .18s ease, border-color .18s ease;
   }
-  .dropzone.drag-over{ background:rgba(201,162,39,0.14); border-color:var(--gold); }
-  .dropzone svg{ width:26px; height:26px; margin-bottom:8px; opacity:0.85; }
-  .dropzone-title{ font-size:15px; font-weight:600; color:var(--paper); }
-  .dropzone-sub{ font-size:12.5px; color:#A79E8C; margin-top:4px; }
-  .dropzone input[type=file]{ display:none; }
-  .dropzone-btn{
-    margin-top:14px; display:inline-block; padding:9px 18px; border-radius:999px;
-    background:var(--gold); color:#241a06; font-weight:600; font-size:13px; cursor:pointer;
-    border:none;
+  .logo{
+    display:block; margin:0 auto 10px;
+    width:110px; height:110px; object-fit:contain;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,0.12));
   }
-  .dropzone-btn:active{ transform:scale(0.97); }
-
-  .shelf-label{
-    font-size:11px; letter-spacing:0.2em; text-transform:uppercase;
-    color:#9C927E; margin:0 2px 10px;
+  .h-eyebrow{ font-size:12.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--burgundy); font-weight:600;}
+  .h-office{ font-size:15px; letter-spacing:0.14em; text-transform:uppercase; color:var(--navy); font-weight:600; margin-top:2px;}
+  .h-title{
+    font-family:var(--display); font-weight:700;
+    font-size:26px; color:var(--burgundy); margin:6px 0 4px;
+    letter-spacing:0.01em;
   }
-  .shelf{
-    display:flex; flex-direction:column;
-    gap:12px;
-    padding-bottom:14px;
-    border-bottom:6px solid #160A0B;
-    box-shadow:0 6px 0 #120708;
-    margin-bottom:26px;
-  }
-  .empty-shelf{
-    font-family:var(--body-font); font-style:italic; color:#7C7361; font-size:14px;
-    padding:18px 4px 26px; text-align:center;
+  .h-sub{ font-size:14px; color:var(--muted); font-style:italic; }
+  @media(min-width:640px){
+    .logo{ width:130px; height:130px; }
+    .h-title{ font-size:32px; }
   }
 
-  .book{
-    position:relative;
-    display:flex; align-items:stretch; gap:12px;
-    padding:10px 42px 10px 10px;
-    background:linear-gradient(180deg, rgba(201,162,39,0.06), rgba(201,162,39,0.02));
-    border:1px solid rgba(201,162,39,0.18);
-    border-radius:10px;
-    cursor:pointer;
-    box-shadow:0 2px 6px rgba(0,0,0,0.35);
-    transition:background .18s ease, transform .12s ease, border-color .18s ease;
+  /* ---------- Container ---------- */
+  .page{ max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{ display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+  @media(min-width:720px){ .toolbar{ flex-direction:row; align-items:center; flex-wrap:wrap; } }
+  .search-box{ position:relative; flex:1; min-width:220px; }
+  .search-box input{
+    width:100%; padding:11px 38px 11px 38px; border-radius:10px;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    font-size:14.5px;
   }
-  .book:hover{ background:rgba(201,162,39,0.10); border-color:rgba(201,162,39,0.35); }
-  .book:active{ transform:translateY(1px); }
-  .book-cover{
-    flex-shrink:0;
-    width:66px; height:92px;
-    border-radius:3px;
-    background:#3A1E1F center/cover no-repeat;
-    box-shadow:inset -2px 0 0 rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.4);
-    display:flex; align-items:center; justify-content:center;
-    color:#E7CE86; font-family:var(--display-font); font-size:11px; text-align:center;
-    overflow:hidden;
+  .search-box input:focus{ outline:2px solid var(--gold); border-color:var(--gold); }
+  .search-box .ic{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); }
+  .search-box .clear{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer;
+    width:26px; height:26px; border-radius:50%; display:none;
   }
-  .book-info{
-    flex:1; min-width:0;
-    display:flex; flex-direction:column; justify-content:center; gap:6px;
+  .search-box.has-value .clear{ display:inline-flex; align-items:center; justify-content:center; }
+
+  .filter-group{ display:flex; gap:6px; flex-wrap:wrap; }
+  .filter-btn{
+    padding:9px 14px; border-radius:999px; border:1px solid var(--line);
+    background:#fff; color:var(--ink); font-size:13.5px; font-weight:500; cursor:pointer;
+    transition:.15s;
   }
-  .book-title{
-    font-family:var(--display-font); font-weight:600; font-size:15px; line-height:1.3;
-    color:var(--paper);
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-    overflow:hidden;
-    text-shadow:0 1px 1px rgba(0,0,0,0.3);
+  .filter-btn:hover{ border-color:var(--burgundy); }
+  .filter-btn.active{ background:var(--burgundy); color:#fff; border-color:var(--burgundy); }
+
+  .btn-primary{
+    padding:11px 18px; border-radius:10px; border:none; background:var(--burgundy); color:#fff;
+    font-weight:600; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
   }
-  .book-meta{
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    font-size:11.5px; color:#A79E8C; font-family:var(--body-font);
+  .btn-primary:hover{ background:var(--burgundy-dark); }
+  .btn-primary:disabled{ opacity:.6; cursor:default; }
+
+  body:not(.is-admin) .admin-only{ display:none !important; }
+
+  /* ---------- Table ---------- */
+  .table-wrap{
+    background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04);
   }
-  .book-meta .dot{ width:3px; height:3px; border-radius:50%; background:#6E6553; }
-  .book-progress-bar{
-    height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;
+  table.docs{ width:100%; border-collapse:collapse; font-size:14px; }
+  table.docs th, table.docs td{ padding:12px 14px; text-align:left; vertical-align:middle; border-bottom:1px solid var(--line); }
+  table.docs th{ background:var(--navy); color:#fff; font-weight:600; font-size:13px; letter-spacing:0.02em; }
+  table.docs tr:last-child td{ border-bottom:none; }
+  table.docs tr:hover td{ background:#FAF5E7; }
+  .col-stt{ width:56px; text-align:center; color:var(--muted); }
+  .col-actions{ width:1%; white-space:nowrap; }
+  .doc-title{ font-weight:600; color:var(--ink); }
+  .doc-type{
+    display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600;
   }
-  .book-progress-bar > span{
-    display:block; height:100%; background:var(--gold);
+  .type-digital{ background:#E8F0FA; color:#0F2A44; }
+  .type-meeting{ background:#FCEAD5; color:#7A3E0B; }
+  .ext-badge{
+    display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; color:#fff;
+    letter-spacing:0.06em; text-transform:uppercase;
   }
-  .book-del{
-    position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:50%;
-    background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15); color:#E9E1D2;
-    font-size:15px; line-height:1; display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
+  .ext-pdf{ background:#8C1C1C; } .ext-word{ background:#1F5AA6; }
+  .ext-ppt{ background:#C7472C; } .ext-excel{ background:#1F7A3E; } .ext-other{ background:#666; }
+
+  .row-btn{
+    background:transparent; border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-size:13px; cursor:pointer; color:var(--ink); margin-right:4px;
   }
-  .book-del:hover{ background:var(--danger); }
+  .row-btn:hover{ border-color:var(--burgundy); color:var(--burgundy); }
+  .row-btn.danger:hover{ border-color:var(--danger); color:var(--danger); }
+
+  .desktop-only{ display:none; }
+  .mobile-only{ display:block; }
+  @media(min-width:840px){
+    .desktop-only{ display:block; }
+    .mobile-only{ display:none; }
+  }
+
+  /* ---------- Cards (mobile) ---------- */
+  .cards{ display:flex; flex-direction:column; gap:12px; }
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  }
+  .card-head{ display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .card-num{
+    background:var(--navy); color:#fff; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0;
+  }
+  .card-title{ font-weight:600; font-size:15px; line-height:1.35; color:var(--ink); }
+  .card-meta{ display:flex; flex-wrap:wrap; gap:8px 12px; font-size:12.5px; color:var(--muted); margin:6px 0 12px; }
+  .card-meta .k{ font-weight:600; color:#4A4234; }
+  .card-actions{ display:flex; flex-wrap:wrap; gap:6px; }
+  .card-actions button{
+    flex:1 1 40%; padding:9px 8px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .card-actions .primary{ background:var(--burgundy); color:#fff; border-color:var(--burgundy); }
+  .card-actions .danger{ color:var(--danger); border-color:#F1C4C4; }
+
+  .empty{
+    padding:40px 20px; text-align:center; color:var(--muted); font-style:italic;
+    background:#fff; border:1px dashed var(--line); border-radius:12px;
+  }
+
+  /* ---------- Admin footer ---------- */
+  .admin-footer{
+    text-align:center; margin:28px 0 6px; font-size:12.5px; color:var(--muted);
+  }
+  .admin-footer button{
+    background:none; border:none; color:var(--burgundy); font:inherit; cursor:pointer;
+    text-decoration:underline; padding:6px 10px;
+  }
+  .admin-badge{
+    display:none; padding:2px 10px; border-radius:999px; background:var(--gold); color:#241a06;
+    font-size:11.5px; font-weight:700; letter-spacing:0.04em; margin-left:6px;
+  }
+  body.is-admin .admin-badge{ display:inline-block; }
 
   /* ---------- Modal ---------- */
   .modal-overlay{
-    position:fixed; inset:0; background:rgba(10,15,13,0.72);
-    display:flex; align-items:center; justify-content:center; z-index:200;
-    padding:24px;
+    position:fixed; inset:0; background:rgba(20,20,20,0.55); z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
   }
   .modal-card{
-    background:var(--paper); color:var(--ink); border-radius:12px; padding:22px 20px;
-    max-width:320px; width:100%; text-align:center;
-    font-family:var(--body-font);
+    background:#fff; color:var(--ink); border-radius:14px; padding:22px;
+    max-width:400px; width:100%;
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
   }
-  .modal-card h3{ font-family:var(--display-font); font-size:19px; margin:0 0 8px; }
-  .modal-card p{ font-size:14px; color:#5A4B3C; margin:0 0 18px; }
-  .modal-actions{ display:flex; gap:10px; }
+  .modal-card h3{ font-family:var(--display); font-size:20px; margin:0 0 6px; color:var(--burgundy); }
+  .modal-card p{ font-size:14px; color:var(--muted); margin:0 0 14px; }
+  .modal-actions{ display:flex; gap:10px; margin-top:14px; }
   .modal-btn{
-    flex:1; padding:10px 0; border-radius:8px; border:none; font-family:var(--ui-font);
-    font-weight:600; font-size:13.5px; cursor:pointer;
+    flex:1; padding:11px; border-radius:9px; border:none; font-weight:600; font-size:14px; cursor:pointer;
   }
-  .modal-btn.cancel{ background:#E6D9C2; color:var(--ink); }
-  .modal-btn.confirm{ background:var(--danger); color:#fff; }
+  .modal-btn.cancel{ background:#EEE7D3; color:var(--ink); }
+  .modal-btn.confirm{ background:var(--burgundy); color:#fff; }
+  .modal-btn.confirm.danger{ background:var(--danger); }
 
-  /* ---------- Loading overlay ---------- */
+  .form-row{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .form-row label{ font-size:12.5px; font-weight:600; color:#4A4234; text-transform:uppercase; letter-spacing:0.04em; }
+  .form-row input, .form-row select{
+    padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#fff;
+    font-size:14px; color:var(--ink);
+  }
+  .form-row input:focus, .form-row select:focus{ outline:2px solid var(--gold); border-color:var(--gold); }
+  .radio-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .radio-group label{
+    flex:1; min-width:140px; display:flex; align-items:center; gap:8px;
+    padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; cursor:pointer;
+    font-size:13.5px; font-weight:500; text-transform:none; letter-spacing:0;
+  }
+  .radio-group label.selected{ border-color:var(--burgundy); background:#FDF3F3; color:var(--burgundy); }
+  .radio-group input{ margin:0; }
+  .msg{ font-size:13px; min-height:18px; margin:4px 0; }
+  .msg.err{ color:var(--danger); }
+  .msg.ok{ color:#1F7A3E; }
+
+  /* ---------- Loading ---------- */
   .loading-overlay{
-    position:fixed; inset:0; background:rgba(18,32,29,0.94); z-index:150;
+    position:fixed; inset:0; background:rgba(255,255,255,0.85); z-index:250;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
   }
   .loading-ring{
-    width:34px; height:34px; border-radius:50%;
-    border:3px solid rgba(201,162,39,0.25); border-top-color:var(--gold);
-    animation:spin 0.9s linear infinite;
+    width:36px; height:36px; border-radius:50%;
+    border:3px solid rgba(122,26,31,0.2); border-top-color:var(--burgundy);
+    animation:spin .9s linear infinite;
   }
   @keyframes spin{ to{ transform:rotate(360deg); } }
-  .loading-text{ font-size:13.5px; color:#C9BFAE; }
   .hidden{ display:none !important; }
 
-  /* ---------- Reader view ---------- */
+  /* ---------- Reader (unchanged core) ---------- */
   #reader{
     position:fixed; inset:0; background:#160A0B; z-index:100;
-    display:flex; flex-direction:column;
+    display:flex; flex-direction:column; color:#F6EEE1;
   }
-  .reader-top{
-    display:flex; align-items:center; gap:10px; padding:14px 14px 10px;
-    flex-shrink:0;
-  }
+  .reader-top{ display:flex; align-items:center; gap:10px; padding:14px 14px 10px; flex-shrink:0; }
   .reader-back{
-    width:34px; height:34px; border-radius:50%; border:none; background:rgba(255,255,255,0.08);
-    color:var(--paper); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.1);
+    color:#F6EEE1; font-size:20px; cursor:pointer;
   }
   .reader-title{
-    font-family:var(--display-font); font-size:14px; font-weight:600; color:#E9E1D2;
+    font-family:var(--display); font-size:14.5px; font-weight:600; color:#E9E1D2;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;
   }
   .reader-download, .reader-zoom-btn{
     width:38px; height:38px; border-radius:50%; border:1px solid rgba(201,162,39,0.45);
     background:rgba(201,162,39,0.12); color:var(--gold-soft);
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
-    transition:background .18s ease, transform .12s ease;
-    padding:0; font: inherit;
+    padding:0;
   }
-  .reader-zoom-btn{ width:34px; height:34px; font-size:19px; line-height:1; font-weight:600; }
+  .reader-zoom-btn{ width:34px; height:34px; font-size:19px; font-weight:600; }
   .reader-zoom-btn:disabled{ opacity:0.35; cursor:default; }
-  .reader-download:active, .reader-zoom-btn:active:not(:disabled){ transform:scale(0.94); background:rgba(201,162,39,0.22); }
-  .reader-download svg{ width:18px; height:18px; }
   .reader-zoom-group{ display:flex; gap:6px; flex-shrink:0; }
+  .reader-download svg{ width:18px; height:18px; }
   .reader-stage{
     flex:1; position:relative; display:flex; align-items:center; justify-content:center;
     padding:6px 14px; overflow:hidden; touch-action:none;
   }
   .reader-stage.is-zoomed .page-tap-zone{ display:none; }
-  .book-frame{ transition:transform .18s ease; transform-origin:center center; }
+  .book-frame{ position:relative; width:100%; height:100%; max-width:640px; perspective:1800px;
+    transition:transform .18s ease; transform-origin:center center; }
+  .book-frame.fitted{ width:auto; height:auto; max-width:none; }
   .book-frame.zoomed{ transition:none; }
   .page-tap-zone{ position:absolute; top:0; bottom:0; width:22%; z-index:5; }
   .page-tap-zone.left{ left:0; } .page-tap-zone.right{ right:0; }
-
-  .book-frame{
-    position:relative; width:100%; height:100%; max-width:520px;
-    perspective:1800px;
-  }
-  .book-frame.fitted{ width:auto; height:auto; max-width:none; }
-
-  /* file-type badge on shelf cards */
-  .book-badge{
-    display:inline-block; padding:1px 6px; border-radius:4px;
-    font-size:10px; font-weight:700; letter-spacing:0.08em;
-    text-transform:uppercase; color:#fff;
-  }
-  .badge-pdf{ background:#8C1C1C; }
-  .badge-word{ background:#1F5AA6; }
-  .badge-ppt{ background:#C7472C; }
-  .badge-excel{ background:#1F7A3E; }
-  .book-cover.cover-word{ background:linear-gradient(135deg,#1F5AA6,#0F3D77); color:#fff; }
-  .book-cover.cover-ppt{ background:linear-gradient(135deg,#C7472C,#8A2F19); color:#fff; }
-  .book-cover.cover-excel{ background:linear-gradient(135deg,#1F7A3E,#125427); color:#fff; }
-  .book-cover .cover-ext{
-    font-family:var(--ui-font); font-weight:700; font-size:16px; letter-spacing:0.06em;
-  }
   .static-page, .flip-page{
-    position:absolute; inset:0; border-radius:3px; background:var(--paper);
+    position:absolute; inset:0; border-radius:3px; background:#F6EEE1;
     background-size:contain; background-position:center; background-repeat:no-repeat;
     box-shadow:0 10px 30px rgba(0,0,0,0.45);
   }
-  .flip-page{
-    transform-style:preserve-3d;
-    will-change:transform;
-    z-index:10;
-  }
-  .flip-shade{
-    position:absolute; inset:0; background:rgba(0,0,0,0);
-    border-radius:3px; pointer-events:none;
-  }
+  .flip-page{ transform-style:preserve-3d; will-change:transform; z-index:10; }
+  .flip-shade{ position:absolute; inset:0; background:rgba(0,0,0,0); border-radius:3px; pointer-events:none; }
   .page-placeholder{
     width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-    color:#A79471; font-family:var(--body-font); font-size:13px; font-style:italic;
+    color:#A79471; font-style:italic; font-size:13px;
   }
-
   .reader-bottom{
     flex-shrink:0; padding:10px 20px 22px; display:flex; flex-direction:column; align-items:center; gap:8px;
   }
-  .page-indicator{ font-size:12.5px; color:#A79E8C; letter-spacing:0.02em; }
+  .page-indicator{ font-size:12.5px; color:#A79E8C; }
   .progress-track{ width:100%; max-width:420px; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
   .progress-fill{ height:100%; background:var(--gold); transition:width .25s ease; }
-
-  @media (prefers-reduced-motion: reduce){
-    .flip-page{ transition:none !important; }
-  }
-
-  /* ---------- admin gate ---------- */
-  body:not(.is-admin) #dropzone{ display:none !important; }
-  body:not(.is-admin) .book-del{ display:none !important; }
-  body:not(.is-admin) #adminToggleBtn{ display:none !important; }
-  body:not(.is-admin) .shelf-label .ro-note{ display:inline; }
-  .shelf-label .ro-note{ display:none; color:#7C7361; font-weight:400; letter-spacing:0.05em; text-transform:none; margin-left:6px; }
-  .admin-footer{
-    text-align:center; margin:30px 0 10px; font-size:11.5px; letter-spacing:0.15em;
-    text-transform:uppercase; color:#5C5546;
-  }
-  .admin-footer button{
-    background:none; border:none; color:#5C5546; font:inherit; letter-spacing:inherit;
-    text-transform:inherit; cursor:pointer; padding:6px 10px;
-  }
-  .admin-footer button:hover{ color:var(--gold-soft); }
-  .admin-badge{ display:none; }
-  body.is-admin .admin-badge{
-    display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px;
-    background:var(--gold); color:#241a06; font-size:10.5px; font-weight:700;
-    letter-spacing:0.08em; vertical-align:middle;
-  }
-  /* Auth modal */
-  .auth-form{ text-align:left; display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
-  .auth-form label{ font-size:12px; color:#6B5A47; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
-  .auth-form input{
-    width:100%; padding:10px 12px; border-radius:8px; border:1px solid #C9BFA6;
-    background:#FBF6EB; color:var(--ink); font-family:var(--body-font); font-size:14px;
-  }
-  .auth-form input:focus{ outline:2px solid var(--gold); border-color:var(--gold); }
-  .auth-msg{ font-size:12.5px; color:#8C1C1C; min-height:16px; text-align:center; margin-bottom:6px; }
-  .auth-toggle{ font-size:12.5px; color:#5A4B3C; text-align:center; margin-top:10px; }
-  .auth-toggle a{ color:#8C1C1C; text-decoration:underline; cursor:pointer; }
+  @media (prefers-reduced-motion: reduce){ .flip-page{ transition:none !important; } }
 </style>
 </head>
 <body>
 
-  <!-- LIBRARY VIEW -->
-  <div id="library">
-    <div class="lib-header">
-      <div class="lib-star">★ ★ ★</div>
-      <h1 class="lib-title">Văn phòng Đảng ủy xã Bà Nà</h1>
-      <div class="lib-rule"></div>
-      <div class="lib-sub">Tài liệu, sách theo hình thức lật trang</div>
-    </div>
+<!-- HEADER -->
+<header class="site-header">
+  <img class="logo" src="/logo-bana.png" alt="Logo Chuyển đổi số — Khối Đảng xã Bà Nà">
+  <div class="h-eyebrow">Đảng ủy xã Bà Nà</div>
+  <div class="h-office">Văn phòng Đảng ủy</div>
+  <h1 class="h-title">Thư viện tài liệu số<span class="admin-badge">Quản trị</span></h1>
+  <div class="h-sub">Kho tài liệu dùng chung phục vụ công tác chuyển đổi số và hội nghị.</div>
+</header>
 
-    <div class="dropzone" id="dropzone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#E7CE86" stroke-width="1.6"><path d="M12 3v12m0-12l-4 4m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-      <div class="dropzone-title">Kéo thả tệp vào đây</div>
-      <div class="dropzone-sub">Hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx), Excel (.xls/.xlsx)</div>
-      <label class="dropzone-btn" id="pickBtn">Chọn tệp
-        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-      </label>
+<main class="page" id="library">
+  <div class="toolbar">
+    <div class="search-box" id="searchBox">
+      <span class="ic">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </span>
+      <input id="searchInput" type="search" placeholder="Tìm kiếm theo tên tài liệu…" autocomplete="off">
+      <button class="clear" id="searchClear" aria-label="Xóa tìm kiếm">×</button>
     </div>
-
-    <div class="shelf-label">Kệ sách<span class="admin-badge">Quản trị</span><span class="ro-note">— chỉ xem</span></div>
-    <div class="shelf" id="shelf"></div>
-    <div class="admin-footer">
-      <button id="adminLoginBtn" type="button">Đăng nhập quản trị</button>
-      <button id="adminToggleBtn" type="button">Thoát chế độ quản trị</button>
+    <div class="filter-group" id="filterGroup">
+      <button class="filter-btn active" data-filter="all">Tất cả</button>
+      <button class="filter-btn" data-filter="digital_transformation">Tài liệu chuyển đổi số</button>
+      <button class="filter-btn" data-filter="meeting">Tài liệu họp</button>
     </div>
+    <button class="btn-primary admin-only" id="openUploadBtn">＋ Tải tài liệu lên</button>
   </div>
 
-  <!-- READER VIEW -->
-  <div id="reader" class="hidden">
-    <div class="reader-top">
-      <button class="reader-back" id="readerBack" aria-label="Quay lại">‹</button>
-      <div class="reader-title" id="readerTitle"></div>
-      <div class="reader-zoom-group">
-        <button class="reader-zoom-btn" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ" disabled>−</button>
-        <button class="reader-zoom-btn" id="zoomIn" aria-label="Phóng to" title="Phóng to">+</button>
-      </div>
-      <button class="reader-download" id="readerDownload" aria-label="Tải tệp về máy" title="Tải tệp về máy">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>
-        </svg>
-      </button>
-    </div>
-    <div class="reader-stage" id="readerStage">
-      <div class="book-frame" id="bookFrame">
-        <div class="static-page" id="pageUnder"><div class="page-placeholder">Đang tải…</div></div>
-        <div class="flip-page hidden" id="pageFlip"><div class="flip-shade" id="flipShade"></div></div>
-      </div>
-      <div class="page-tap-zone left" id="zoneLeft"></div>
-      <div class="page-tap-zone right" id="zoneRight"></div>
-    </div>
-    <div class="reader-bottom">
-      <div class="page-indicator" id="pageIndicator">— / —</div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
+  <!-- Desktop table -->
+  <div class="table-wrap desktop-only" id="tableWrap">
+    <table class="docs">
+      <thead>
+        <tr>
+          <th class="col-stt">STT</th>
+          <th>Tên tài liệu</th>
+          <th>Loại tài liệu</th>
+          <th>Ngày tải lên</th>
+          <th>Loại file</th>
+          <th>Dung lượng</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="docsTbody"></tbody>
+    </table>
   </div>
 
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="loading-ring"></div>
-    <div class="loading-text" id="loadingText">Đang xử lý…</div>
-  </div>
+  <!-- Mobile cards -->
+  <div class="cards mobile-only" id="docsCards"></div>
 
-  <div class="modal-overlay hidden" id="modalOverlay">
-    <div class="modal-card">
-      <h3 id="modalTitle">Xóa tài liệu này?</h3>
-      <p id="modalBody">Tài liệu sẽ bị xóa vĩnh viễn khỏi kho lưu trữ chung.</p>
-      <div class="modal-actions">
-        <button class="modal-btn cancel" id="modalCancel">Hủy</button>
-        <button class="modal-btn confirm" id="modalConfirm">Xóa</button>
-      </div>
+  <div class="admin-footer">
+    <button id="adminLoginBtn" type="button">Đăng nhập quản trị</button>
+    <button id="adminLogoutBtn" type="button" class="admin-only">Đăng xuất</button>
+  </div>
+</main>
+
+<!-- READER -->
+<div id="reader" class="hidden">
+  <div class="reader-top">
+    <button class="reader-back" id="readerBack" aria-label="Quay lại thư viện" title="Quay lại thư viện">‹</button>
+    <div class="reader-title" id="readerTitle"></div>
+    <div class="reader-zoom-group">
+      <button class="reader-zoom-btn" id="zoomOut" aria-label="Thu nhỏ" disabled>−</button>
+      <button class="reader-zoom-btn" id="zoomIn" aria-label="Phóng to">+</button>
+    </div>
+    <button class="reader-download" id="readerDownload" aria-label="Tải xuống" title="Tải xuống">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="reader-stage" id="readerStage">
+    <div class="book-frame" id="bookFrame">
+      <div class="static-page" id="pageUnder"><div class="page-placeholder">Đang tải…</div></div>
+      <div class="flip-page hidden" id="pageFlip"><div class="flip-shade" id="flipShade"></div></div>
+    </div>
+    <div class="page-tap-zone left" id="zoneLeft"></div>
+    <div class="page-tap-zone right" id="zoneRight"></div>
+  </div>
+  <div class="reader-bottom">
+    <div class="page-indicator" id="pageIndicator">— / —</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="loading-ring"></div>
+  <div id="loadingText">Đang xử lý…</div>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal-card">
+    <h3 id="modalTitle">Xác nhận</h3>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="modalCancel">Hủy</button>
+      <button class="modal-btn confirm danger" id="modalConfirm">Xóa</button>
     </div>
   </div>
+</div>
 
-  <div class="modal-overlay hidden" id="authOverlay">
-    <div class="modal-card">
-      <h3 id="authTitle">Đăng nhập quản trị</h3>
-      <p id="authSub">Chỉ tài khoản quản trị mới có thể tải lên hoặc xóa tài liệu.</p>
-      <form class="auth-form" id="authForm" autocomplete="off">
-        <div>
-          <label for="authEmail">Email</label>
-          <input type="email" id="authEmail" required autocomplete="username">
-        </div>
-        <div>
-          <label for="authPassword">Mật khẩu</label>
-          <input type="password" id="authPassword" required minlength="6" autocomplete="current-password">
-        </div>
-      </form>
-      <div class="auth-msg" id="authMsg"></div>
-      <div class="modal-actions">
-        <button class="modal-btn cancel" id="authCancel" type="button">Hủy</button>
-        <button class="modal-btn confirm" id="authSubmit" type="button">Đăng nhập</button>
-      </div>
-      <div class="auth-toggle">
-        <span id="authToggleText">Chưa có tài khoản?</span>
-        <a id="authToggleLink">Đăng ký</a>
-      </div>
+<!-- Info modal (single OK) -->
+<div class="modal-overlay hidden" id="infoOverlay">
+  <div class="modal-card">
+    <h3 id="infoTitle">Thông báo</h3>
+    <p id="infoBody"></p>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" id="infoOk" style="flex:1">Đã hiểu</button>
     </div>
   </div>
+</div>
+
+<!-- Upload modal -->
+<div class="modal-overlay hidden" id="uploadOverlay">
+  <div class="modal-card">
+    <h3>Tải tài liệu lên thư viện</h3>
+    <p>Hỗ trợ PDF, Word, PowerPoint, Excel.</p>
+    <div class="form-row">
+      <label for="upFile">Chọn tệp</label>
+      <input type="file" id="upFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+    </div>
+    <div class="form-row">
+      <label for="upTitle">Tên tài liệu</label>
+      <input type="text" id="upTitle" placeholder="Nhập tên hiển thị của tài liệu">
+    </div>
+    <div class="form-row">
+      <label>Loại tài liệu</label>
+      <div class="radio-group" id="upTypeGroup">
+        <label><input type="radio" name="doctype" value="digital_transformation"> Tài liệu chuyển đổi số</label>
+        <label><input type="radio" name="doctype" value="meeting"> Tài liệu họp</label>
+      </div>
+    </div>
+    <div class="msg err" id="upMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="upCancel">Hủy</button>
+      <button class="modal-btn confirm" id="upSubmit">Lưu vào thư viện</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename modal -->
+<div class="modal-overlay hidden" id="renameOverlay">
+  <div class="modal-card">
+    <h3>Đổi tên tài liệu</h3>
+    <div class="form-row">
+      <label for="renameInput">Tên mới</label>
+      <input type="text" id="renameInput">
+    </div>
+    <div class="msg err" id="renameMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="renameCancel">Hủy</button>
+      <button class="modal-btn confirm" id="renameSubmit">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth modal -->
+<div class="modal-overlay hidden" id="authOverlay">
+  <div class="modal-card">
+    <h3 id="authTitle">Đăng nhập quản trị</h3>
+    <p id="authSub">Chỉ tài khoản quản trị mới có thể tải lên, đổi tên hoặc xóa tài liệu.</p>
+    <div class="form-row">
+      <label for="authEmail">Email</label>
+      <input type="email" id="authEmail" autocomplete="username">
+    </div>
+    <div class="form-row">
+      <label for="authPassword">Mật khẩu</label>
+      <input type="password" id="authPassword" autocomplete="current-password" minlength="6">
+    </div>
+    <div class="msg err" id="authMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="authCancel">Hủy</button>
+      <button class="modal-btn confirm" id="authSubmit">Đăng nhập</button>
+    </div>
+    <p style="text-align:center;font-size:12.5px;color:var(--muted);margin:10px 0 0;">
+      <span id="authToggleText">Chưa có tài khoản quản trị?</span>
+      <a id="authToggleLink" style="cursor:pointer;">Đăng ký</a>
+    </p>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin:6px 0 0;font-style:italic;">
+      Nếu chưa có tài khoản quản trị, vui lòng liên hệ Văn phòng Đảng ủy.
+    </p>
+  </div>
+</div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ---------- Supabase client ----------
+// ---------- Supabase ----------
 const SUPABASE_URL = 'https://nhqebvrhtwbvjhlbrzlt.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TLpjXPMrY9EJ25Fi91asZA_Wxume9SR';
 const SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'flipbook-auth' }
+  auth: { persistSession:true, autoRefreshToken:true, storageKey:'flipbook-auth' }
 });
 const BUCKET = 'documents';
 
-const $ = (id) => document.getElementById(id);
-const libraryEl = $('library'), shelfEl = $('shelf'), dropzone = $('dropzone');
-const fileInput = $('fileInput');
-const readerEl = $('reader'), readerStage = $('readerStage'), bookFrame = $('bookFrame');
-const pageUnder = $('pageUnder'), pageFlip = $('pageFlip'), flipShade = $('flipShade');
-const readerTitle = $('readerTitle'), pageIndicator = $('pageIndicator'), progressFill = $('progressFill');
-const loadingOverlay = $('loadingOverlay'), loadingText = $('loadingText');
-const modalOverlay = $('modalOverlay'), modalConfirm = $('modalConfirm'), modalCancel = $('modalCancel');
+const $ = id => document.getElementById(id);
 
-let libraryIndex = [];       // remote documents list
-let currentBook = null;      // {id, title, page_count, ...}
-let currentPdfDoc = null;
-let currentPage = 1;
+// ---------- State ----------
+let libraryIndex = [];
+let currentFilter = 'all';
+let currentSearch = '';
+let isAdmin = false;
+let currentBook = null, currentPdfDoc = null, currentPage = 1;
 let pageImageCache = new Map();
 let progressSaveTimer = null;
-let isAdmin = false;         // derived from user_roles
 
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-function showLoading(msg){
-  if(loadingText) loadingText.textContent = msg || 'Đang xử lý…';
-  if(loadingOverlay) loadingOverlay.classList.remove('hidden');
+// ---------- Utils ----------
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){
+  if(!iso) return '';
+  try{ return new Date(iso).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); }catch(_){ return ''; }
 }
-function hideLoading(){ if(loadingOverlay) loadingOverlay.classList.add('hidden'); }
+function fmtSize(bytes){
+  if(!bytes) return '';
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function stripDiacritics(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+function showLoading(msg){ $('loadingText').textContent = msg||'Đang xử lý…'; $('loadingOverlay').classList.remove('hidden'); }
+function hideLoading(){ $('loadingOverlay').classList.add('hidden'); }
+function showInfo(title, body){
+  $('infoTitle').textContent = title; $('infoBody').textContent = body;
+  $('infoOverlay').classList.remove('hidden');
+}
+$('infoOk').addEventListener('click', ()=> $('infoOverlay').classList.add('hidden'));
 
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function showErrorBanner(title, detail){
-  hideLoading();
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-card">
-      <h3 style="color:#8C1C1C;">${escapeHtml(title)}</h3>
-      <p>${escapeHtml(detail)}</p>
-      <div class="modal-actions">
-        <button class="modal-btn confirm" style="flex:1;">Đã hiểu</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('button').addEventListener('click', () => overlay.remove());
-}
-
-// ---------- reading progress (per-viewer, local) ----------
-// Chỉ vị trí đọc mới lưu ở localStorage — danh sách tài liệu KHÔNG bao giờ lưu ở local.
-function getProgress(bookId){
-  try{ return parseInt(localStorage.getItem('progress:'+bookId)||'1', 10) || 1; }catch(_){ return 1; }
-}
-function setProgress(bookId, page){
-  try{ localStorage.setItem('progress:'+bookId, String(page)); }catch(_){}
-}
-
-// ---------- library (remote) ----------
-async function loadIndex(){
-  const { data, error } = await SB
-    .from('documents')
-    .select('id,title,kind,ext,mime,page_count,size_bytes,storage_path,cover_path,created_at')
-    .order('created_at', { ascending: false });
-  if(error){ console.error('load-documents-failed', error); libraryIndex = []; return; }
-  libraryIndex = (data || []).map(row => ({
-    id: row.id,
-    title: row.title,
-    kind: row.kind,
-    ext: row.ext,
-    mime: row.mime,
-    pageCount: row.page_count,
-    sizeBytes: row.size_bytes,
-    storagePath: row.storage_path,
-    coverPath: row.cover_path,
-    addedAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-    lastPage: getProgress(row.id),
-    coverUrl: null,
-  }));
-  // Resolve cover URLs in parallel (signed URLs — bucket is not public).
-  await Promise.all(libraryIndex.map(async b => {
-    if(!b.coverPath) return;
-    try{
-      const { data: signed } = await SB.storage.from(BUCKET).createSignedUrl(b.coverPath, 3600);
-      if(signed && signed.signedUrl) b.coverUrl = signed.signedUrl;
-    }catch(_){}
-  }));
-}
-
-function formatFileMeta(book){
-  const parts = [];
-  if(book.kind === 'pdf' && book.pageCount) parts.push(`${book.pageCount} trang`);
-  else if(book.sizeBytes) parts.push(`${(book.sizeBytes/(1024*1024)).toFixed(1)} MB`);
-  if(book.addedAt){
-    const d = new Date(book.addedAt);
-    parts.push(d.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'}));
-  }
-  return parts;
-}
-
-const KIND_LABEL = { pdf:'PDF', word:'WORD', ppt:'PPT', excel:'EXCEL' };
-const EXT_LABEL  = { pdf:'PDF', word:'DOC', ppt:'PPT', excel:'XLS' };
-
-function renderShelf(){
-  shelfEl.innerHTML = '';
-  if(libraryIndex.length === 0){
-    shelfEl.innerHTML = '<div class="empty-shelf">Chưa có tài liệu nào được đăng.</div>';
-    return;
-  }
-  libraryIndex.forEach((book, i) => {
-    const div = document.createElement('div');
-    div.className = 'book';
-    const kind = book.kind || 'pdf';
-    const isPdf = kind === 'pdf';
-    const percent = (isPdf && book.pageCount) ? Math.min(100, Math.round((book.lastPage/book.pageCount)*100)) : 0;
-    const status = isPdf
-      ? (percent >= 100 ? 'Đã đọc xong' : (percent > 0 ? `Đang đọc • ${percent}%` : 'Chưa đọc'))
-      : 'Chạm để tải về';
-    const metaBits = formatFileMeta(book);
-    const badgeCls = 'badge-' + kind;
-    const badgeHtml = `<span class="book-badge ${badgeCls}">${KIND_LABEL[kind]||'FILE'}</span>`;
-    const metaHtml = badgeHtml
-      + metaBits.map(t => '<span class="dot"></span><span>'+escapeHtml(t)+'</span>').join('')
-      + '<span class="dot"></span><span>' + escapeHtml(status) + '</span>';
-    let coverStyle = '', coverInner = '', coverExtraCls = '';
-    if(isPdf && book.coverUrl){
-      coverStyle = `background-image:url(${book.coverUrl});`;
-    } else if(isPdf){
-      coverStyle = `background:${spineColor(i)};`;
-      coverInner = `<span>${escapeHtml((book.title||'PDF').slice(0,18))}</span>`;
-    } else {
-      coverExtraCls = ' cover-' + kind;
-      coverInner = `<span class="cover-ext">${EXT_LABEL[kind]||'FILE'}</span>`;
-    }
-    const progressHtml = isPdf
-      ? `<div class="book-progress-bar"><span style="width:${percent}%"></span></div>`
-      : '';
-    div.innerHTML = `
-      <div class="book-cover${coverExtraCls}" style="${coverStyle}">${coverInner}</div>
-      <div class="book-info">
-        <div class="book-title">${escapeHtml(book.title)}</div>
-        <div class="book-meta">${metaHtml}</div>
-        ${progressHtml}
-      </div>
-      <button class="book-del" data-id="${book.id}" aria-label="Xóa">×</button>
-    `;
-    div.addEventListener('click', (e) => {
-      if(e.target.closest('.book-del')) return;
-      if(isPdf) openBook(book);
-      else downloadBook(book);
-    });
-    div.querySelector('.book-del').addEventListener('click', (e) => {
-      e.stopPropagation();
-      confirmDeleteBook(book);
-    });
-    shelfEl.appendChild(div);
-  });
-}
-function spineColor(i){
-  const palette = ['#A6242A','#7A1418','#8C1C1C','#5C1015','#932025'];
-  return palette[i % palette.length];
-}
-
-// Render page 1 of a pdf as a small JPEG blob to use as the cover thumbnail.
-async function renderCoverThumbnailBlob(pdfDoc){
-  try{
-    const page = await pdfDoc.getPage(1);
-    const baseViewport = page.getViewport({scale:1});
-    const targetWidth = 240;
-    const scale = targetWidth / baseViewport.width;
-    const viewport = page.getViewport({scale});
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width; canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d');
-    await page.render({canvasContext: ctx, viewport}).promise;
-    return await new Promise(res => canvas.toBlob(b => res(b), 'image/jpeg', 0.72));
-  }catch(e){ console.warn('cover-render-failed', e); return null; }
-}
-
-// ---------- upload ----------
+const TYPE_LABEL = { digital_transformation:'Tài liệu chuyển đổi số', meeting:'Tài liệu họp' };
+const TYPE_CLASS = { digital_transformation:'type-digital', meeting:'type-meeting' };
+const EXT_CLASS = { pdf:'ext-pdf', doc:'ext-word', docx:'ext-word', ppt:'ext-ppt', pptx:'ext-ppt', xls:'ext-excel', xlsx:'ext-excel' };
 const KIND_BY_EXT = {
   pdf:  { kind:'pdf',   mime:'application/pdf' },
   doc:  { kind:'word',  mime:'application/msword' },
@@ -599,630 +525,675 @@ const KIND_BY_EXT = {
   xls:  { kind:'excel', mime:'application/vnd.ms-excel' },
   xlsx: { kind:'excel', mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
 };
-function detectFileKind(file){
-  const ext = (file.name.split('.').pop()||'').toLowerCase();
-  const info = KIND_BY_EXT[ext];
-  return info ? { ext, ...info } : null;
+
+// ---------- Load ----------
+async function loadIndex(){
+  const { data, error } = await SB.from('documents')
+    .select('id,title,kind,ext,mime,page_count,size_bytes,storage_path,cover_path,document_type,created_at')
+    .order('created_at', { ascending:false });
+  if(error){ console.error('load-failed', error); libraryIndex=[]; return; }
+  libraryIndex = (data||[]).map(r => ({
+    id:r.id, title:r.title, kind:r.kind, ext:r.ext, mime:r.mime,
+    pageCount:r.page_count, sizeBytes:r.size_bytes,
+    storagePath:r.storage_path, coverPath:r.cover_path,
+    documentType:r.document_type || 'meeting',
+    createdAt:r.created_at,
+    lastPage: getProgress(r.id),
+  }));
 }
 
-async function handleUpload(file){
-  if(!isAdmin){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể tải lên tài liệu.'); return; }
-  if(!file) return;
-  const info = detectFileKind(file);
-  if(!info){
-    showErrorBanner('Sai định dạng tệp', 'Chỉ hỗ trợ PDF, Word (.doc/.docx), PowerPoint (.ppt/.pptx) và Excel (.xls/.xlsx).');
-    return;
-  }
-  const sizeMB = file.size / (1024*1024);
-  if(sizeMB > 200){
-    showErrorBanner('Tệp quá lớn', `Tệp khoảng ${sizeMB.toFixed(0)}MB, vượt hạn mức 200MB.`);
-    return;
-  }
+function getProgress(id){ try{ return parseInt(localStorage.getItem('progress:'+id)||'1',10)||1; }catch(_){ return 1; } }
+function setProgress(id, p){ try{ localStorage.setItem('progress:'+id, String(p)); }catch(_){} }
 
-  const id = 'b' + Date.now() + Math.floor(Math.random()*1000);
-  const storagePath = `files/${id}.${info.ext}`;
-  const title = file.name.replace(new RegExp('\\.'+info.ext+'$','i'),'');
-
-  // 1) Upload the main file
-  try{
-    showLoading('Đang tải tệp lên máy chủ…');
-    const { error: upErr } = await SB.storage.from(BUCKET).upload(storagePath, file, {
-      contentType: info.mime, upsert: false,
-    });
-    if(upErr) throw upErr;
-  }catch(err){
-    console.error('upload-failed', err);
-    showErrorBanner('Tải lên thất bại', (err && err.message) || 'Không thể tải tệp lên Supabase Storage.');
-    return;
-  }
-
-  // 2) For PDF, parse and render cover
-  let pageCount = null;
-  let coverPath = null;
-  if(info.kind === 'pdf'){
-    let doc = null;
-    try{
-      showLoading('Đang phân tích tài liệu…');
-      const buf = await file.arrayBuffer();
-      doc = await pdfjsLib.getDocument({data: new Uint8Array(buf)}).promise;
-      pageCount = doc.numPages;
-    }catch(err){
-      console.error('pdf-parse-failed', err);
-      await SB.storage.from(BUCKET).remove([storagePath]).catch(()=>{});
-      showErrorBanner('Không đọc được nội dung PDF', 'Tệp có thể bị hỏng hoặc mã hóa. Vui lòng thử tệp khác.');
-      return;
-    }
-    try{
-      showLoading('Đang tạo ảnh bìa…');
-      const coverBlob = await renderCoverThumbnailBlob(doc);
-      if(coverBlob){
-        coverPath = `covers/${id}.jpg`;
-        const { error: covErr } = await SB.storage.from(BUCKET).upload(coverPath, coverBlob, {
-          contentType:'image/jpeg', upsert: true,
-        });
-        if(covErr){ console.warn('cover-upload-failed', covErr); coverPath = null; }
-      }
-    }catch(e){ console.warn('cover-step-failed', e); }
-  }
-
-  // 3) Insert metadata row
-  try{
-    showLoading('Đang lưu thông tin tài liệu…');
-    const { error: insErr } = await SB.from('documents').insert({
-      id, title, kind: info.kind, ext: info.ext, mime: info.mime,
-      page_count: pageCount, size_bytes: file.size,
-      storage_path: storagePath, cover_path: coverPath,
-    });
-    if(insErr) throw insErr;
-  }catch(err){
-    console.error('insert-doc-failed', err);
-    await SB.storage.from(BUCKET).remove([storagePath, coverPath].filter(Boolean)).catch(()=>{});
-    showErrorBanner('Lưu tài liệu thất bại', (err && err.message) || 'Không thể lưu thông tin vào cơ sở dữ liệu.');
-    return;
-  }
-
-  await loadIndex();
-  renderShelf();
-  hideLoading();
-}
-
-// ---------- download ----------
-async function downloadBlobFromStorage(path){
-  const { data, error } = await SB.storage.from(BUCKET).download(path);
-  if(error) throw error;
-  return data; // Blob
-}
-async function downloadBook(book){
-  const ext = book.ext || (book.kind === 'pdf' ? 'pdf' : 'bin');
-  const safeName = (book.title || 'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80) + '.' + ext;
-  try{
-    showLoading('Đang chuẩn bị tệp để tải…');
-    const blob = await downloadBlobFromStorage(book.storagePath);
-    hideLoading();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = safeName; a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
-  }catch(err){
-    console.error('download-failed', err);
-    hideLoading();
-    showErrorBanner('Không tải được tệp', (err && err.message) || 'Không lấy được tệp từ Supabase Storage.');
-  }
-}
-
-// ---------- delete ----------
-let pendingDelete = null;
-function confirmDeleteBook(book){
-  if(!isAdmin){ showErrorBanner('Không có quyền', 'Chỉ tài khoản quản trị mới có thể xóa tài liệu.'); return; }
-  pendingDelete = book;
-  modalOverlay.classList.remove('hidden');
-}
-modalCancel.addEventListener('click', () => { modalOverlay.classList.add('hidden'); pendingDelete = null; });
-modalConfirm.addEventListener('click', async () => {
-  if(!pendingDelete) return;
-  if(!isAdmin){ modalOverlay.classList.add('hidden'); pendingDelete = null; return; }
-  const book = pendingDelete;
-  modalOverlay.classList.add('hidden');
-  showLoading('Đang xóa…');
-  try{
-    const paths = [book.storagePath, book.coverPath].filter(Boolean);
-    if(paths.length) await SB.storage.from(BUCKET).remove(paths);
-    const { error } = await SB.from('documents').delete().eq('id', book.id);
-    if(error) throw error;
-  }catch(err){
-    console.error('delete-failed', err);
-    hideLoading();
-    showErrorBanner('Xóa thất bại', (err && err.message) || 'Không xóa được tài liệu.');
-    pendingDelete = null;
-    return;
-  }
-  await loadIndex();
-  renderShelf();
-  hideLoading();
-  pendingDelete = null;
-});
-
-// ---------- open / read ----------
-async function openBook(book){
-  showLoading('Đang mở sách…');
-  try{
-    const blob = await downloadBlobFromStorage(book.storagePath);
-    const buf = await blob.arrayBuffer();
-    const doc = await pdfjsLib.getDocument({data: new Uint8Array(buf)}).promise;
-    hideLoading();
-    openBookWithDoc(book, doc);
-  }catch(err){
-    console.error(err);
-    hideLoading();
-    showErrorBanner('Không mở được sách', 'Không tải được nội dung tài liệu từ máy chủ. Vui lòng thử lại.');
-  }
-}
-
-function openBookWithDoc(book, doc){
-  currentBook = book;
-  currentPdfDoc = doc;
-  currentPage = Math.min(Math.max(1, book.lastPage||1), doc.numPages);
-  pageImageCache.clear();
-  readerTitle.textContent = book.title;
-  readerEl.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  if(typeof resetZoom === 'function') resetZoom();
-  renderCurrentPage();
-  prefetchNeighbors();
-}
-
-function closeReader(){
-  readerEl.classList.add('hidden');
-  document.body.style.overflow = '';
-  currentPdfDoc = null; currentBook = null;
-  renderShelf();
-}
-$('readerBack').addEventListener('click', closeReader);
-
-async function downloadCurrentBook(){
-  if(!currentBook) return;
-  await downloadBook(currentBook);
-}
-$('readerDownload').addEventListener('click', downloadCurrentBook);
-
-// Điều chỉnh khung sách theo tỉ lệ trang (fit "contain") để trang ngang / slide
-// hiển thị đầy đủ trong màn hình, không bị cắt.
-async function fitBookFrameToPage(pageNum){
-  if(!currentPdfDoc) return;
-  try{
-    const page = await currentPdfDoc.getPage(pageNum);
-    const vp = page.getViewport({scale:1});
-    const aspect = vp.width / vp.height;
-    const stage = readerStage.getBoundingClientRect();
-    const availW = Math.max(200, stage.width - 24);
-    const availH = Math.max(200, stage.height - 12);
-    let w = availW, h = w / aspect;
-    if(h > availH){ h = availH; w = h * aspect; }
-    bookFrame.classList.add('fitted');
-    bookFrame.style.width = Math.round(w) + 'px';
-    bookFrame.style.height = Math.round(h) + 'px';
-  }catch(e){ /* ignore */ }
-}
-
-async function getPageImage(pageNum){
-  if(pageImageCache.has(pageNum)) return pageImageCache.get(pageNum);
-  const page = await currentPdfDoc.getPage(pageNum);
-  const boost = (typeof hiResBoost !== 'undefined' && hiResBoost) ? 2 : 1;
-  const cap = boost > 1 ? 2400 : 1100;
-  const targetWidth = Math.min(cap, Math.max(600, bookFrame.clientWidth * (window.devicePixelRatio||1) * boost));
-  const baseViewport = page.getViewport({scale:1});
-  const scale = targetWidth / baseViewport.width;
-  const viewport = page.getViewport({scale});
-  const canvas = document.createElement('canvas');
-  canvas.width = viewport.width; canvas.height = viewport.height;
-  const ctx = canvas.getContext('2d');
-  await page.render({canvasContext: ctx, viewport}).promise;
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-  if(pageImageCache.size > 16){
-    const firstKey = pageImageCache.keys().next().value;
-    pageImageCache.delete(firstKey);
-  }
-  pageImageCache.set(pageNum, dataUrl);
-  return dataUrl;
-}
-
-async function prefetchNeighbors(){
-  const p = currentPage;
-  const targets = [p+1, p-1, p+2].filter(n => n>=1 && n<=currentPdfDoc.numPages);
-  for(const n of targets){ getPageImage(n).catch(()=>{}); }
-}
-
-async function renderCurrentPage(){
-  updateIndicator();
-  await fitBookFrameToPage(currentPage);
-  pageUnder.innerHTML = '';
-  try{
-    const url = await getPageImage(currentPage);
-    pageUnder.style.backgroundImage = `url(${url})`;
-    pageUnder.style.backgroundSize = 'contain';
-    pageUnder.style.backgroundColor = 'var(--paper)';
-  }catch(e){
-    pageUnder.innerHTML = '<div class="page-placeholder">Không thể hiển thị trang này</div>';
-  }
-  prefetchNeighbors();
-  saveProgress();
-}
-
-function updateIndicator(){
-  pageIndicator.textContent = `${currentPage} / ${currentPdfDoc.numPages}`;
-  progressFill.style.width = Math.round((currentPage/currentPdfDoc.numPages)*100) + '%';
-}
-
-function saveProgress(){
-  if(!currentBook) return;
-  currentBook.lastPage = currentPage;
-  const idx = libraryIndex.findIndex(b => b.id === currentBook.id);
-  if(idx>=0) libraryIndex[idx].lastPage = currentPage;
-  clearTimeout(progressSaveTimer);
-  progressSaveTimer = setTimeout(() => { setProgress(currentBook.id, currentPage); }, 400);
-}
-
-// ---------- flip gesture ----------
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let drag = null;
-
-function canGo(direction){
-  if(!currentPdfDoc) return false;
-  if(direction==='next') return currentPage < currentPdfDoc.numPages;
-  if(direction==='prev') return currentPage > 1;
-  return false;
-}
-
-function beginDragVisuals(direction){
-  const destPage = direction==='next' ? currentPage+1 : currentPage-1;
-  pageFlip.classList.remove('hidden');
-  pageFlip.style.transition = 'none';
-  pageFlip.style.transformOrigin = direction==='next' ? 'left center' : 'right center';
-  pageFlip.style.backgroundImage = pageImageCache.has(currentPage) ? `url(${pageImageCache.get(currentPage)})` : '';
-  pageFlip.style.transform = 'rotateY(0deg)';
-  getPageImage(destPage).then(url => { pageUnder.style.backgroundImage = `url(${url})`; }).catch(()=>{});
-}
-
-function applyDragAngle(direction, ratio){
-  const angle = Math.min(1, Math.max(0, ratio)) * 180;
-  pageFlip.style.transform = `rotateY(${direction==='next' ? -angle : angle}deg)`;
-  flipShade.style.background = `rgba(0,0,0,${Math.sin(angle*Math.PI/180)*0.45})`;
-}
-
-function settleDrag(direction, completed){
-  const dur = reduceMotion ? '0s' : '.28s';
-  pageFlip.style.transition = `transform ${dur} ease`;
-  if(completed){
-    pageFlip.style.transform = `rotateY(${direction==='next' ? -180 : 180}deg)`;
-    setTimeout(() => {
-      currentPage = direction==='next' ? currentPage+1 : currentPage-1;
-      pageFlip.classList.add('hidden');
-      flipShade.style.background = 'transparent';
-      renderCurrentPage();
-    }, reduceMotion ? 0 : 280);
-  } else {
-    pageFlip.style.transform = 'rotateY(0deg)';
-    setTimeout(() => {
-      pageFlip.classList.add('hidden');
-      flipShade.style.background = 'transparent';
-      pageUnder.style.backgroundImage = pageImageCache.has(currentPage) ? `url(${pageImageCache.get(currentPage)})` : '';
-    }, reduceMotion ? 0 : 280);
-  }
-}
-
-function programmaticFlip(direction){
-  if(!canGo(direction)) return;
-  beginDragVisuals(direction);
-  requestAnimationFrame(() => {
-    pageFlip.style.transition = reduceMotion ? 'none' : 'transform .32s ease';
-    pageFlip.style.transform = `rotateY(${direction==='next' ? -180 : 180}deg)`;
-    flipShade.style.background = 'rgba(0,0,0,0.12)';
-    setTimeout(() => {
-      currentPage = direction==='next' ? currentPage+1 : currentPage-1;
-      pageFlip.classList.add('hidden');
-      flipShade.style.background = 'transparent';
-      renderCurrentPage();
-    }, reduceMotion ? 0 : 320);
+// ---------- Render ----------
+function getFiltered(){
+  const q = stripDiacritics(currentSearch.trim());
+  return libraryIndex.filter(b => {
+    if(currentFilter !== 'all' && b.documentType !== currentFilter) return false;
+    if(q && !stripDiacritics(b.title).includes(q)) return false;
+    return true;
   });
 }
 
-// ---------- zoom / pan ----------
-let zoomState = { scale:1, panX:0, panY:0 };
-let hiResBoost = false;
-let boostTimer = null;
-const activePointers = new Map();
-let pinchStart = null;
-let panStart = null;
-const zoomInBtn = $('zoomIn'), zoomOutBtn = $('zoomOut');
+function renderLibrary(){
+  const list = getFiltered();
+  const tbody = $('docsTbody');
+  const cards = $('docsCards');
+  tbody.innerHTML = ''; cards.innerHTML = '';
 
+  if(list.length === 0){
+    const msg = (currentSearch || currentFilter !== 'all')
+      ? 'Không tìm thấy tài liệu phù hợp.'
+      : 'Chưa có tài liệu nào trong thư viện.';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty" style="border:none;">${msg}</td></tr>`;
+    cards.innerHTML = `<div class="empty">${msg}</div>`;
+    return;
+  }
+
+  list.forEach((b, i) => {
+    const stt = i + 1;
+    const extCls = EXT_CLASS[b.ext] || 'ext-other';
+    const typeCls = TYPE_CLASS[b.documentType] || '';
+    const typeLabel = TYPE_LABEL[b.documentType] || '—';
+    const ext = (b.ext || '').toUpperCase();
+    const date = fmtDate(b.createdAt);
+    const size = fmtSize(b.sizeBytes);
+    const isPdf = b.kind === 'pdf';
+
+    // Table row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-stt">${stt}</td>
+      <td><div class="doc-title">${escapeHtml(b.title)}</div></td>
+      <td><span class="doc-type ${typeCls}">${escapeHtml(typeLabel)}</span></td>
+      <td>${escapeHtml(date)}</td>
+      <td><span class="ext-badge ${extCls}">${escapeHtml(ext)}</span></td>
+      <td>${escapeHtml(size)}</td>
+      <td class="col-actions">
+        <button class="row-btn" data-act="view">Xem</button>
+        <button class="row-btn" data-act="download">Tải xuống</button>
+        <button class="row-btn admin-only" data-act="rename">Đổi tên</button>
+        <button class="row-btn danger admin-only" data-act="delete">Xóa</button>
+      </td>`;
+    tr.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', () => handleAction(btn.dataset.act, b));
+    });
+    tbody.appendChild(tr);
+
+    // Card
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-num">${stt}</div>
+        <div class="card-title">${escapeHtml(b.title)}</div>
+      </div>
+      <div class="card-meta">
+        <span><span class="doc-type ${typeCls}">${escapeHtml(typeLabel)}</span></span>
+        <span><span class="k">Ngày:</span> ${escapeHtml(date)}</span>
+        <span><span class="k">Loại:</span> <span class="ext-badge ${extCls}">${escapeHtml(ext)}</span></span>
+        <span><span class="k">Dung lượng:</span> ${escapeHtml(size)}</span>
+      </div>
+      <div class="card-actions">
+        <button class="primary" data-act="view">Xem tài liệu</button>
+        <button data-act="download">Tải xuống</button>
+        <button class="admin-only" data-act="rename">Đổi tên</button>
+        <button class="danger admin-only" data-act="delete">Xóa</button>
+      </div>`;
+    card.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', () => handleAction(btn.dataset.act, b));
+    });
+    cards.appendChild(card);
+  });
+}
+
+function handleAction(act, book){
+  if(act === 'view'){
+    if(book.kind === 'pdf') openBook(book);
+    else downloadBook(book);
+    return;
+  }
+  if(act === 'download'){ downloadBook(book); return; }
+  if(act === 'rename'){ openRename(book); return; }
+  if(act === 'delete'){ confirmDeleteBook(book); return; }
+}
+
+// ---------- Search / Filter ----------
+$('searchInput').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  $('searchBox').classList.toggle('has-value', !!currentSearch);
+  renderLibrary();
+});
+$('searchClear').addEventListener('click', () => {
+  $('searchInput').value = ''; currentSearch = '';
+  $('searchBox').classList.remove('has-value');
+  renderLibrary();
+});
+$('filterGroup').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn'); if(!btn) return;
+  currentFilter = btn.dataset.filter;
+  $('filterGroup').querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+  renderLibrary();
+});
+
+// ---------- Upload ----------
+const upOverlay = $('uploadOverlay');
+$('openUploadBtn').addEventListener('click', () => {
+  if(!isAdmin){ showInfo('Không có quyền','Chỉ tài khoản quản trị mới có thể tải lên.'); return; }
+  $('upFile').value=''; $('upTitle').value=''; $('upMsg').textContent='';
+  $('upTypeGroup').querySelectorAll('input').forEach(i => i.checked=false);
+  $('upTypeGroup').querySelectorAll('label').forEach(l => l.classList.remove('selected'));
+  upOverlay.classList.remove('hidden');
+});
+$('upCancel').addEventListener('click', () => upOverlay.classList.add('hidden'));
+$('upFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  if(!$('upTitle').value.trim()){
+    const ext = (f.name.split('.').pop()||'').toLowerCase();
+    $('upTitle').value = f.name.replace(new RegExp('\\.'+ext+'$','i'),'');
+  }
+});
+$('upTypeGroup').addEventListener('change', () => {
+  $('upTypeGroup').querySelectorAll('label').forEach(l => {
+    l.classList.toggle('selected', l.querySelector('input').checked);
+  });
+});
+
+$('upSubmit').addEventListener('click', async () => {
+  if(!isAdmin){ $('upMsg').textContent='Chỉ quản trị viên mới có thể tải lên.'; return; }
+  const file = $('upFile').files[0];
+  const title = $('upTitle').value.trim();
+  const type = ($('upTypeGroup').querySelector('input:checked')||{}).value;
+  if(!file){ $('upMsg').textContent='Vui lòng chọn tệp tài liệu.'; return; }
+  if(!title){ $('upMsg').textContent='Vui lòng nhập tên tài liệu.'; return; }
+  if(!type){ $('upMsg').textContent='Vui lòng chọn loại tài liệu.'; return; }
+  const ext = (file.name.split('.').pop()||'').toLowerCase();
+  const info = KIND_BY_EXT[ext];
+  if(!info){ $('upMsg').textContent='Định dạng không hỗ trợ. Chỉ chấp nhận PDF, Word, PowerPoint, Excel.'; return; }
+  if(file.size > 200*1024*1024){ $('upMsg').textContent='Tệp vượt quá 200MB.'; return; }
+
+  $('upSubmit').disabled = true;
+  const id = 'b' + Date.now() + Math.floor(Math.random()*1000);
+  const storagePath = `files/${id}.${ext}`;
+  try{
+    showLoading('Đang tải tệp lên máy chủ…');
+    const { error: upErr } = await SB.storage.from(BUCKET).upload(storagePath, file, { contentType: info.mime, upsert:false });
+    if(upErr) throw upErr;
+
+    let pageCount = null, coverPath = null;
+    if(info.kind === 'pdf'){
+      try{
+        showLoading('Đang phân tích PDF…');
+        const buf = await file.arrayBuffer();
+        const doc = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+        pageCount = doc.numPages;
+        const coverBlob = await renderCoverBlob(doc);
+        if(coverBlob){
+          coverPath = `covers/${id}.jpg`;
+          const { error:cErr } = await SB.storage.from(BUCKET).upload(coverPath, coverBlob, { contentType:'image/jpeg', upsert:true });
+          if(cErr){ coverPath = null; }
+        }
+      }catch(e){ console.warn('pdf-parse-warn', e); }
+    }
+
+    showLoading('Đang lưu thông tin tài liệu…');
+    const { error: insErr } = await SB.from('documents').insert({
+      id, title, kind:info.kind, ext, mime:info.mime,
+      page_count:pageCount, size_bytes:file.size,
+      storage_path:storagePath, cover_path:coverPath,
+      document_type: type,
+    });
+    if(insErr) throw insErr;
+
+    hideLoading();
+    upOverlay.classList.add('hidden');
+    await loadIndex(); renderLibrary();
+    showInfo('Thành công','Đã lưu tài liệu vào thư viện dùng chung.');
+  }catch(err){
+    console.error('upload-failed', err);
+    hideLoading();
+    await SB.storage.from(BUCKET).remove([storagePath]).catch(()=>{});
+    $('upMsg').textContent = 'Tải lên thất bại: ' + ((err&&err.message)||'Không rõ lỗi');
+  }finally{
+    $('upSubmit').disabled = false;
+  }
+});
+
+async function renderCoverBlob(pdfDoc){
+  try{
+    const page = await pdfDoc.getPage(1);
+    const base = page.getViewport({scale:1});
+    const scale = 240 / base.width;
+    const vp = page.getViewport({scale});
+    const c = document.createElement('canvas');
+    c.width = vp.width; c.height = vp.height;
+    await page.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+    return await new Promise(r => c.toBlob(b => r(b),'image/jpeg',0.72));
+  }catch(_){ return null; }
+}
+
+// ---------- Rename ----------
+let renameTarget = null;
+function openRename(book){
+  if(!isAdmin){ showInfo('Không có quyền','Chỉ tài khoản quản trị mới có thể đổi tên.'); return; }
+  renameTarget = book;
+  $('renameInput').value = book.title;
+  $('renameMsg').textContent = '';
+  $('renameOverlay').classList.remove('hidden');
+  setTimeout(()=> $('renameInput').focus(), 50);
+}
+$('renameCancel').addEventListener('click', ()=> $('renameOverlay').classList.add('hidden'));
+$('renameSubmit').addEventListener('click', async () => {
+  if(!renameTarget) return;
+  const newTitle = $('renameInput').value.trim();
+  if(!newTitle){ $('renameMsg').textContent='Tên không được để trống.'; return; }
+  $('renameSubmit').disabled = true;
+  try{
+    const { error } = await SB.from('documents').update({ title:newTitle, updated_at:new Date().toISOString() }).eq('id', renameTarget.id);
+    if(error) throw error;
+    $('renameOverlay').classList.add('hidden');
+    await loadIndex(); renderLibrary();
+  }catch(err){
+    console.error('rename-failed', err);
+    $('renameMsg').textContent = 'Đổi tên thất bại: ' + ((err&&err.message)||'Không rõ lỗi');
+  }finally{
+    $('renameSubmit').disabled = false;
+    renameTarget = null;
+  }
+});
+
+// ---------- Delete ----------
+let pendingDelete = null;
+function confirmDeleteBook(book){
+  if(!isAdmin){ showInfo('Không có quyền','Chỉ tài khoản quản trị mới có thể xóa.'); return; }
+  pendingDelete = book;
+  $('modalTitle').textContent = 'Xóa tài liệu này?';
+  $('modalBody').textContent = 'Anh/chị có chắc chắn muốn xóa "'+book.title+'" khỏi thư viện dùng chung không?';
+  $('modalOverlay').classList.remove('hidden');
+}
+$('modalCancel').addEventListener('click', ()=>{ $('modalOverlay').classList.add('hidden'); pendingDelete=null; });
+$('modalConfirm').addEventListener('click', async () => {
+  if(!pendingDelete) return;
+  const b = pendingDelete; pendingDelete = null;
+  $('modalOverlay').classList.add('hidden');
+  showLoading('Đang xóa…');
+  try{
+    const paths = [b.storagePath, b.coverPath].filter(Boolean);
+    if(paths.length) await SB.storage.from(BUCKET).remove(paths);
+    const { error } = await SB.from('documents').delete().eq('id', b.id);
+    if(error) throw error;
+    await loadIndex(); renderLibrary();
+    hideLoading();
+  }catch(err){
+    console.error('delete-failed', err); hideLoading();
+    showInfo('Xóa thất bại', (err&&err.message)||'Không xóa được tài liệu.');
+  }
+});
+
+// ---------- Download ----------
+async function downloadBook(book){
+  const ext = book.ext || 'bin';
+  const safe = (book.title||'tai-lieu').replace(/[\\/:*?"<>|]+/g,'_').slice(0,80)+'.'+ext;
+  try{
+    showLoading('Đang chuẩn bị tệp…');
+    const { data, error } = await SB.storage.from(BUCKET).download(book.storagePath);
+    if(error) throw error;
+    hideLoading();
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href=url; a.download=safe; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 4000);
+  }catch(err){
+    console.error('download-failed', err); hideLoading();
+    showInfo('Không tải được tệp', (err&&err.message)||'Lỗi tải tệp.');
+  }
+}
+
+// ---------- Reader ----------
+async function openBook(book){
+  showLoading('Đang mở tài liệu…');
+  try{
+    const { data, error } = await SB.storage.from(BUCKET).download(book.storagePath);
+    if(error) throw error;
+    const buf = await data.arrayBuffer();
+    const doc = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    hideLoading();
+    currentBook = book; currentPdfDoc = doc;
+    currentPage = Math.min(Math.max(1, book.lastPage||1), doc.numPages);
+    pageImageCache.clear();
+    $('readerTitle').textContent = book.title;
+    $('reader').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    resetZoom();
+    renderCurrentPage(); prefetchNeighbors();
+  }catch(err){
+    console.error(err); hideLoading();
+    showInfo('Không mở được tài liệu','Không tải được nội dung. Vui lòng thử lại.');
+  }
+}
+function closeReader(){
+  $('reader').classList.add('hidden');
+  document.body.style.overflow = '';
+  currentPdfDoc = null; currentBook = null;
+  renderLibrary();
+}
+$('readerBack').addEventListener('click', closeReader);
+$('readerDownload').addEventListener('click', ()=> currentBook && downloadBook(currentBook));
+
+async function fitBookFrameToPage(n){
+  if(!currentPdfDoc) return;
+  try{
+    const page = await currentPdfDoc.getPage(n);
+    const vp = page.getViewport({scale:1});
+    const aspect = vp.width/vp.height;
+    const stage = $('readerStage').getBoundingClientRect();
+    const availW = Math.max(200, stage.width-24), availH = Math.max(200, stage.height-12);
+    let w = availW, h = w/aspect;
+    if(h > availH){ h = availH; w = h*aspect; }
+    const bf = $('bookFrame');
+    bf.classList.add('fitted');
+    bf.style.width = Math.round(w)+'px'; bf.style.height = Math.round(h)+'px';
+  }catch(_){}
+}
+async function getPageImage(n){
+  if(pageImageCache.has(n)) return pageImageCache.get(n);
+  const page = await currentPdfDoc.getPage(n);
+  const boost = hiResBoost ? 2 : 1;
+  const cap = boost > 1 ? 2400 : 1200;
+  const targetW = Math.min(cap, Math.max(600, $('bookFrame').clientWidth * (window.devicePixelRatio||1) * boost));
+  const base = page.getViewport({scale:1});
+  const vp = page.getViewport({scale: targetW/base.width});
+  const c = document.createElement('canvas');
+  c.width = vp.width; c.height = vp.height;
+  await page.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+  const url = c.toDataURL('image/jpeg', 0.88);
+  if(pageImageCache.size > 16) pageImageCache.delete(pageImageCache.keys().next().value);
+  pageImageCache.set(n, url);
+  return url;
+}
+async function prefetchNeighbors(){
+  const p = currentPage;
+  for(const n of [p+1,p-1,p+2]) if(n>=1 && n<=currentPdfDoc.numPages) getPageImage(n).catch(()=>{});
+}
+async function renderCurrentPage(){
+  updateIndicator();
+  await fitBookFrameToPage(currentPage);
+  const pu = $('pageUnder'); pu.innerHTML = '';
+  try{
+    const url = await getPageImage(currentPage);
+    pu.style.backgroundImage = `url(${url})`;
+    pu.style.backgroundSize = 'contain';
+  }catch(_){ pu.innerHTML = '<div class="page-placeholder">Không thể hiển thị trang này</div>'; }
+  prefetchNeighbors(); saveProgress();
+}
+function updateIndicator(){
+  $('pageIndicator').textContent = `${currentPage} / ${currentPdfDoc.numPages}`;
+  $('progressFill').style.width = Math.round((currentPage/currentPdfDoc.numPages)*100)+'%';
+}
+function saveProgress(){
+  if(!currentBook) return;
+  currentBook.lastPage = currentPage;
+  const i = libraryIndex.findIndex(b=>b.id===currentBook.id); if(i>=0) libraryIndex[i].lastPage=currentPage;
+  clearTimeout(progressSaveTimer);
+  progressSaveTimer = setTimeout(()=> setProgress(currentBook.id, currentPage), 400);
+}
+
+// ---------- Flip ----------
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let drag = null;
+function canGo(dir){
+  if(!currentPdfDoc) return false;
+  if(dir==='next') return currentPage < currentPdfDoc.numPages;
+  if(dir==='prev') return currentPage > 1;
+}
+function beginDragVisuals(dir){
+  const dest = dir==='next' ? currentPage+1 : currentPage-1;
+  const pf = $('pageFlip');
+  pf.classList.remove('hidden'); pf.style.transition='none';
+  pf.style.transformOrigin = dir==='next' ? 'left center' : 'right center';
+  pf.style.backgroundImage = pageImageCache.has(currentPage) ? `url(${pageImageCache.get(currentPage)})` : '';
+  pf.style.transform = 'rotateY(0deg)';
+  getPageImage(dest).then(u => { $('pageUnder').style.backgroundImage = `url(${u})`; }).catch(()=>{});
+}
+function applyDragAngle(dir, ratio){
+  const angle = Math.min(1,Math.max(0,ratio))*180;
+  $('pageFlip').style.transform = `rotateY(${dir==='next'?-angle:angle}deg)`;
+  $('flipShade').style.background = `rgba(0,0,0,${Math.sin(angle*Math.PI/180)*0.45})`;
+}
+function settleDrag(dir, done){
+  const dur = reduceMotion?'0s':'.28s';
+  const pf = $('pageFlip');
+  pf.style.transition = `transform ${dur} ease`;
+  if(done){
+    pf.style.transform = `rotateY(${dir==='next'?-180:180}deg)`;
+    setTimeout(()=>{
+      currentPage = dir==='next'?currentPage+1:currentPage-1;
+      pf.classList.add('hidden'); $('flipShade').style.background='transparent';
+      renderCurrentPage();
+    }, reduceMotion?0:280);
+  } else {
+    pf.style.transform = 'rotateY(0deg)';
+    setTimeout(()=>{
+      pf.classList.add('hidden'); $('flipShade').style.background='transparent';
+      $('pageUnder').style.backgroundImage = pageImageCache.has(currentPage) ? `url(${pageImageCache.get(currentPage)})` : '';
+    }, reduceMotion?0:280);
+  }
+}
+function programmaticFlip(dir){
+  if(!canGo(dir)) return;
+  beginDragVisuals(dir);
+  requestAnimationFrame(()=>{
+    const pf = $('pageFlip');
+    pf.style.transition = reduceMotion?'none':'transform .32s ease';
+    pf.style.transform = `rotateY(${dir==='next'?-180:180}deg)`;
+    $('flipShade').style.background='rgba(0,0,0,0.12)';
+    setTimeout(()=>{
+      currentPage = dir==='next'?currentPage+1:currentPage-1;
+      pf.classList.add('hidden'); $('flipShade').style.background='transparent';
+      renderCurrentPage();
+    }, reduceMotion?0:320);
+  });
+}
+
+// ---------- Zoom/pan ----------
+let zoomState = { scale:1, panX:0, panY:0 };
+let hiResBoost = false, boostTimer = null;
+const activePointers = new Map();
+let pinchStart = null, panStart = null;
+const zoomInBtn = $('zoomIn'), zoomOutBtn = $('zoomOut');
 function applyZoomTransform(){
-  bookFrame.style.transform = `translate(${zoomState.panX}px, ${zoomState.panY}px) scale(${zoomState.scale})`;
-  bookFrame.classList.toggle('zoomed', zoomState.scale !== 1);
-  readerStage.classList.toggle('is-zoomed', zoomState.scale > 1.02);
+  const bf = $('bookFrame');
+  bf.style.transform = `translate(${zoomState.panX}px, ${zoomState.panY}px) scale(${zoomState.scale})`;
+  bf.classList.toggle('zoomed', zoomState.scale !== 1);
+  $('readerStage').classList.toggle('is-zoomed', zoomState.scale > 1.02);
   zoomOutBtn.disabled = zoomState.scale <= 1.02;
   zoomInBtn.disabled = zoomState.scale >= 3.95;
 }
 function clampPan(){
-  const stageRect = readerStage.getBoundingClientRect();
-  const w = bookFrame.clientWidth * zoomState.scale;
-  const h = bookFrame.clientHeight * zoomState.scale;
-  const maxX = Math.max(0, (w - stageRect.width)/2 + 30);
-  const maxY = Math.max(0, (h - stageRect.height)/2 + 30);
+  const bf = $('bookFrame');
+  const s = $('readerStage').getBoundingClientRect();
+  const w = bf.clientWidth * zoomState.scale, h = bf.clientHeight * zoomState.scale;
+  const maxX = Math.max(0,(w-s.width)/2+30), maxY = Math.max(0,(h-s.height)/2+30);
   zoomState.panX = Math.min(maxX, Math.max(-maxX, zoomState.panX));
   zoomState.panY = Math.min(maxY, Math.max(-maxY, zoomState.panY));
 }
-function setZoom(newScale, focalX, focalY){
+function setZoom(ns, fx, fy){
   const prev = zoomState.scale;
-  newScale = Math.min(4, Math.max(1, newScale));
-  if(focalX!=null && focalY!=null && prev !== newScale){
-    const stageRect = readerStage.getBoundingClientRect();
-    const cx = focalX - stageRect.left - stageRect.width/2;
-    const cy = focalY - stageRect.top - stageRect.height/2;
-    const k = newScale / prev;
-    zoomState.panX = cx + (zoomState.panX - cx) * k;
-    zoomState.panY = cy + (zoomState.panY - cy) * k;
+  ns = Math.min(4, Math.max(1, ns));
+  if(fx!=null && fy!=null && prev!==ns){
+    const s = $('readerStage').getBoundingClientRect();
+    const cx = fx - s.left - s.width/2, cy = fy - s.top - s.height/2;
+    const k = ns / prev;
+    zoomState.panX = cx + (zoomState.panX - cx)*k;
+    zoomState.panY = cy + (zoomState.panY - cy)*k;
   }
-  zoomState.scale = newScale;
-  if(newScale <= 1.01){ zoomState.scale = 1; zoomState.panX = 0; zoomState.panY = 0; }
-  clampPan();
-  applyZoomTransform();
-  scheduleResolutionBoost();
-}
-function scheduleResolutionBoost(){
+  zoomState.scale = ns;
+  if(ns <= 1.01){ zoomState.scale=1; zoomState.panX=0; zoomState.panY=0; }
+  clampPan(); applyZoomTransform();
   const shouldBoost = zoomState.scale > 1.4;
-  if(shouldBoost === hiResBoost) return;
-  clearTimeout(boostTimer);
-  boostTimer = setTimeout(() => {
-    hiResBoost = shouldBoost;
-    if(currentPdfDoc){ pageImageCache.clear(); renderCurrentPage(); }
-  }, 160);
+  if(shouldBoost !== hiResBoost){
+    clearTimeout(boostTimer);
+    boostTimer = setTimeout(()=>{ hiResBoost = shouldBoost; if(currentPdfDoc){ pageImageCache.clear(); renderCurrentPage(); } }, 160);
+  }
 }
-function resetZoom(){
-  zoomState = { scale:1, panX:0, panY:0 };
-  hiResBoost = false;
-  applyZoomTransform();
-}
-zoomInBtn.addEventListener('click', () => setZoom(zoomState.scale * 1.5));
-zoomOutBtn.addEventListener('click', () => setZoom(zoomState.scale / 1.5));
+function resetZoom(){ zoomState={scale:1,panX:0,panY:0}; hiResBoost=false; applyZoomTransform(); }
+zoomInBtn.addEventListener('click', ()=> setZoom(zoomState.scale*1.5));
+zoomOutBtn.addEventListener('click', ()=> setZoom(zoomState.scale/1.5));
 
-readerStage.addEventListener('pointerdown', (e) => {
-  activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  try { readerStage.setPointerCapture(e.pointerId); } catch(_){}
+const readerStage = $('readerStage');
+readerStage.addEventListener('pointerdown', e => {
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  try{ readerStage.setPointerCapture(e.pointerId); }catch(_){}
   if(activePointers.size >= 2){
-    drag = null; panStart = null;
-    const pts = [...activePointers.values()];
-    const a = pts[0], b = pts[1];
-    pinchStart = {
-      dist: Math.hypot(a.x-b.x, a.y-b.y) || 1,
-      scale: zoomState.scale,
-      panX: zoomState.panX, panY: zoomState.panY,
-      cx: (a.x+b.x)/2, cy: (a.y+b.y)/2,
-    };
+    drag=null; panStart=null;
+    const pts=[...activePointers.values()], a=pts[0], b=pts[1];
+    pinchStart = { dist:Math.hypot(a.x-b.x,a.y-b.y)||1, scale:zoomState.scale, panX:zoomState.panX, panY:zoomState.panY, cx:(a.x+b.x)/2, cy:(a.y+b.y)/2 };
     return;
   }
-  if(zoomState.scale > 1){
-    panStart = { x:e.clientX, y:e.clientY, panX:zoomState.panX, panY:zoomState.panY };
-    return;
-  }
+  if(zoomState.scale > 1){ panStart={x:e.clientX,y:e.clientY,panX:zoomState.panX,panY:zoomState.panY}; return; }
   if(!currentPdfDoc) return;
-  drag = { startX: e.clientX, direction: null, width: bookFrame.clientWidth };
+  drag = { startX:e.clientX, direction:null, width:$('bookFrame').clientWidth };
 });
-readerStage.addEventListener('pointermove', (e) => {
+readerStage.addEventListener('pointermove', e => {
   if(!activePointers.has(e.pointerId)) return;
-  activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  if(pinchStart && activePointers.size >= 2){
-    const pts = [...activePointers.values()];
-    const a = pts[0], b = pts[1];
-    const dist = Math.hypot(a.x-b.x, a.y-b.y);
-    const newScale = Math.min(4, Math.max(1, pinchStart.scale * (dist / pinchStart.dist)));
-    zoomState.scale = pinchStart.scale;
-    zoomState.panX = pinchStart.panX;
-    zoomState.panY = pinchStart.panY;
-    setZoom(newScale, pinchStart.cx, pinchStart.cy);
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinchStart && activePointers.size>=2){
+    const pts=[...activePointers.values()], a=pts[0], b=pts[1];
+    const dist=Math.hypot(a.x-b.x,a.y-b.y);
+    const ns=Math.min(4,Math.max(1, pinchStart.scale*(dist/pinchStart.dist)));
+    zoomState.scale=pinchStart.scale; zoomState.panX=pinchStart.panX; zoomState.panY=pinchStart.panY;
+    setZoom(ns, pinchStart.cx, pinchStart.cy);
     return;
   }
   if(panStart){
-    zoomState.panX = panStart.panX + (e.clientX - panStart.x);
-    zoomState.panY = panStart.panY + (e.clientY - panStart.y);
-    clampPan();
-    applyZoomTransform();
+    zoomState.panX=panStart.panX+(e.clientX-panStart.x);
+    zoomState.panY=panStart.panY+(e.clientY-panStart.y);
+    clampPan(); applyZoomTransform();
     return;
   }
   if(!drag) return;
   const dx = e.clientX - drag.startX;
   if(!drag.direction){
-    if(Math.abs(dx) < 8) return;
-    const dir = dx < 0 ? 'next' : 'prev';
-    if(!canGo(dir)){ drag.direction = 'blocked'; return; }
-    drag.direction = dir;
-    beginDragVisuals(dir);
+    if(Math.abs(dx)<8) return;
+    const dir = dx<0?'next':'prev';
+    if(!canGo(dir)){ drag.direction='blocked'; return; }
+    drag.direction=dir; beginDragVisuals(dir);
   }
-  if(drag.direction === 'blocked') return;
-  const ratio = Math.abs(dx) / drag.width;
-  applyDragAngle(drag.direction, ratio);
+  if(drag.direction==='blocked') return;
+  applyDragAngle(drag.direction, Math.abs(dx)/drag.width);
 });
 function endDrag(e){
   activePointers.delete(e.pointerId);
-  if(activePointers.size < 2) pinchStart = null;
-  if(activePointers.size === 0) panStart = null;
+  if(activePointers.size<2) pinchStart=null;
+  if(activePointers.size===0) panStart=null;
   if(!drag) return;
-  if(drag.direction && drag.direction !== 'blocked'){
-    const dx = Math.abs((e.clientX||0) - drag.startX);
-    const ratio = dx / drag.width;
-    settleDrag(drag.direction, ratio > 0.42);
+  if(drag.direction && drag.direction!=='blocked'){
+    const dx = Math.abs((e.clientX||0)-drag.startX);
+    settleDrag(drag.direction, dx/drag.width > 0.42);
   }
-  drag = null;
+  drag=null;
 }
 readerStage.addEventListener('pointerup', endDrag);
 readerStage.addEventListener('pointercancel', endDrag);
 
-let lastTapAt = 0, lastTapX = 0, lastTapY = 0;
-readerStage.addEventListener('click', (e) => {
-  const now = Date.now();
-  const near = Math.abs(e.clientX - lastTapX) < 40 && Math.abs(e.clientY - lastTapY) < 40;
-  if(now - lastTapAt < 320 && near){
-    if(zoomState.scale > 1.02) setZoom(1);
-    else setZoom(2.2, e.clientX, e.clientY);
-    lastTapAt = 0;
-    e.stopPropagation();
-  } else {
-    lastTapAt = now; lastTapX = e.clientX; lastTapY = e.clientY;
-  }
+let lastTapAt=0, lastTapX=0, lastTapY=0;
+readerStage.addEventListener('click', e => {
+  const now=Date.now();
+  const near=Math.abs(e.clientX-lastTapX)<40 && Math.abs(e.clientY-lastTapY)<40;
+  if(now-lastTapAt<320 && near){
+    if(zoomState.scale>1.02) setZoom(1); else setZoom(2.2, e.clientX, e.clientY);
+    lastTapAt=0; e.stopPropagation();
+  } else { lastTapAt=now; lastTapX=e.clientX; lastTapY=e.clientY; }
 }, true);
-
-readerStage.addEventListener('wheel', (e) => {
+readerStage.addEventListener('wheel', e => {
   if(!e.ctrlKey && !e.metaKey) return;
   e.preventDefault();
-  const factor = Math.exp(-e.deltaY * 0.0025);
-  setZoom(zoomState.scale * factor, e.clientX, e.clientY);
+  setZoom(zoomState.scale * Math.exp(-e.deltaY*0.0025), e.clientX, e.clientY);
 }, { passive:false });
 
-$('zoneLeft').addEventListener('click', () => { if(zoomState.scale <= 1.02) programmaticFlip('prev'); });
-$('zoneRight').addEventListener('click', () => { if(zoomState.scale <= 1.02) programmaticFlip('next'); });
-
-document.addEventListener('keydown', (e) => {
-  if(readerEl.classList.contains('hidden')) return;
-  if(e.key === 'ArrowRight') programmaticFlip('next');
-  if(e.key === 'ArrowLeft') programmaticFlip('prev');
-  if(e.key === 'Escape') closeReader();
+$('zoneLeft').addEventListener('click', ()=>{ if(zoomState.scale<=1.02) programmaticFlip('prev'); });
+$('zoneRight').addEventListener('click', ()=>{ if(zoomState.scale<=1.02) programmaticFlip('next'); });
+document.addEventListener('keydown', e => {
+  if($('reader').classList.contains('hidden')) return;
+  if(e.key==='ArrowRight') programmaticFlip('next');
+  if(e.key==='ArrowLeft') programmaticFlip('prev');
+  if(e.key==='Escape') closeReader();
+});
+let resizeT=null;
+window.addEventListener('resize', ()=>{
+  if($('reader').classList.contains('hidden')||!currentPdfDoc) return;
+  clearTimeout(resizeT); resizeT=setTimeout(()=>{ pageImageCache.clear(); renderCurrentPage(); }, 250);
 });
 
-let resizeTimer = null;
-window.addEventListener('resize', () => {
-  if(readerEl.classList.contains('hidden') || !currentPdfDoc) return;
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    pageImageCache.clear();
-    renderCurrentPage();
-  }, 250);
-});
-
-// ---------- upload wiring ----------
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  handleUpload(file);
-  fileInput.value = '';
-});
-['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-  e.preventDefault(); dropzone.classList.add('drag-over');
-}));
-['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-  e.preventDefault(); dropzone.classList.remove('drag-over');
-}));
-dropzone.addEventListener('drop', (e) => {
-  const file = e.dataTransfer.files[0];
-  handleUpload(file);
-});
-
-// ---------- admin (Supabase auth + role) ----------
+// ---------- Auth ----------
 const authOverlay = $('authOverlay');
-const authEmail = $('authEmail'), authPassword = $('authPassword'), authMsg = $('authMsg');
-const authSubmit = $('authSubmit'), authCancel = $('authCancel');
-const authTitle = $('authTitle'), authSub = $('authSub');
-const authToggleText = $('authToggleText'), authToggleLink = $('authToggleLink');
-let authMode = 'signin'; // 'signin' | 'signup'
-
+let authMode = 'signin';
 function refreshAuthModeUI(){
-  if(authMode === 'signin'){
-    authTitle.textContent = 'Đăng nhập quản trị';
-    authSub.textContent = 'Chỉ tài khoản quản trị mới có thể tải lên, sửa hoặc xóa tài liệu.';
-    authSubmit.textContent = 'Đăng nhập';
-    authToggleText.textContent = 'Chưa có tài khoản quản trị?';
-    authToggleLink.textContent = 'Đăng ký';
+  if(authMode==='signin'){
+    $('authTitle').textContent='Đăng nhập quản trị';
+    $('authSub').textContent='Chỉ tài khoản quản trị mới có thể tải lên, đổi tên hoặc xóa tài liệu.';
+    $('authSubmit').textContent='Đăng nhập';
+    $('authToggleText').textContent='Chưa có tài khoản quản trị?';
+    $('authToggleLink').textContent='Đăng ký';
   } else {
-    authTitle.textContent = 'Đăng ký quản trị';
-    authSub.textContent = 'Tài khoản đầu tiên đăng ký sẽ được cấp quyền quản trị tự động.';
-    authSubmit.textContent = 'Đăng ký';
-    authToggleText.textContent = 'Đã có tài khoản?';
-    authToggleLink.textContent = 'Đăng nhập';
+    $('authTitle').textContent='Đăng ký quản trị';
+    $('authSub').textContent='Tài khoản đầu tiên đăng ký sẽ tự động được cấp quyền quản trị.';
+    $('authSubmit').textContent='Đăng ký';
+    $('authToggleText').textContent='Đã có tài khoản?';
+    $('authToggleLink').textContent='Đăng nhập';
   }
-  authMsg.textContent = '';
+  $('authMsg').textContent='';
 }
-authToggleLink.addEventListener('click', () => {
-  authMode = (authMode === 'signin') ? 'signup' : 'signin';
-  refreshAuthModeUI();
+$('authToggleLink').addEventListener('click', ()=>{ authMode = authMode==='signin'?'signup':'signin'; refreshAuthModeUI(); });
+$('authCancel').addEventListener('click', ()=> authOverlay.classList.add('hidden'));
+$('adminLoginBtn').addEventListener('click', ()=>{
+  authMode='signin'; refreshAuthModeUI();
+  $('authEmail').value=''; $('authPassword').value='';
+  authOverlay.classList.remove('hidden');
+  setTimeout(()=> $('authEmail').focus(), 50);
 });
-authCancel.addEventListener('click', () => { authOverlay.classList.add('hidden'); });
-authSubmit.addEventListener('click', async () => {
-  const email = authEmail.value.trim();
-  const password = authPassword.value;
-  if(!email || password.length < 6){ authMsg.textContent = 'Vui lòng nhập email và mật khẩu tối thiểu 6 ký tự.'; return; }
-  authSubmit.disabled = true; authMsg.textContent = 'Đang xử lý…';
+$('adminLogoutBtn').addEventListener('click', async () => {
+  await SB.auth.signOut();
+  await refreshAuthState();
+  renderLibrary();
+});
+$('authSubmit').addEventListener('click', async () => {
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  if(!email || password.length < 6){ $('authMsg').textContent='Vui lòng nhập email và mật khẩu tối thiểu 6 ký tự.'; return; }
+  $('authSubmit').disabled = true; $('authMsg').textContent='Đang xử lý…';
   try{
-    if(authMode === 'signup'){
+    if(authMode==='signup'){
       const emailRedirectTo = window.location.origin + window.location.pathname;
-      const { error } = await SB.auth.signUp({ email, password, options: { emailRedirectTo } });
+      const { error } = await SB.auth.signUp({ email, password, options:{ emailRedirectTo } });
       if(error) throw error;
-      // Try to sign in immediately (works if email confirmation is disabled).
       const { error: siErr } = await SB.auth.signInWithPassword({ email, password });
       if(siErr){
-        authMsg.textContent = 'Đăng ký thành công. Vui lòng xác nhận email rồi đăng nhập lại.';
-        authMode = 'signin'; refreshAuthModeUI();
-        return;
+        $('authMsg').textContent = 'Đăng ký thành công. Vui lòng xác nhận email rồi đăng nhập lại.';
+        authMode='signin'; refreshAuthModeUI(); return;
       }
     } else {
       const { error } = await SB.auth.signInWithPassword({ email, password });
-      if(error) throw error;
+      if(error) throw new Error('Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.');
     }
-    // Attempt to claim admin role (no-op if an admin already exists).
     try{ await SB.rpc('claim_first_admin'); }catch(_){}
     authOverlay.classList.add('hidden');
     await refreshAuthState();
-    await loadIndex();
-    renderShelf();
+    await loadIndex(); renderLibrary();
     if(!isAdmin){
-      showErrorBanner('Chưa được cấp quyền', 'Tài khoản của bạn không phải quản trị. Liên hệ quản trị viên hiện tại để được cấp quyền.');
+      showInfo('Chưa được cấp quyền','Tài khoản của bạn không phải quản trị. Vui lòng liên hệ Văn phòng Đảng ủy để được cấp quyền.');
     }
   }catch(err){
     console.error('auth-failed', err);
-    authMsg.textContent = (err && err.message) || 'Đăng nhập thất bại.';
+    $('authMsg').textContent = (err && err.message) || 'Đăng nhập không thành công.';
   }finally{
-    authSubmit.disabled = false;
+    $('authSubmit').disabled = false;
   }
-});
-
-$('adminLoginBtn').addEventListener('click', () => {
-  authMode = 'signin'; refreshAuthModeUI();
-  authEmail.value = ''; authPassword.value = '';
-  authOverlay.classList.remove('hidden');
-  setTimeout(() => authEmail.focus(), 50);
-});
-$('adminToggleBtn').addEventListener('click', async () => {
-  await SB.auth.signOut();
-  await refreshAuthState();
-  renderShelf();
 });
 
 async function refreshAuthState(){
   isAdmin = false;
-  const { data: { session } } = await SB.auth.getSession();
-  if(session && session.user){
-    try{
-      const { data, error } = await SB
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      if(!error && data) isAdmin = true;
-    }catch(_){}
-  }
+  try{
+    const { data: { session } } = await SB.auth.getSession();
+    if(session && session.user){
+      const { data } = await SB.from('user_roles')
+        .select('role').eq('user_id', session.user.id).eq('role','admin').maybeSingle();
+      if(data) isAdmin = true;
+    }
+  }catch(e){ console.warn('auth-state-err', e); }
   document.body.classList.toggle('is-admin', isAdmin);
 }
-
 SB.auth.onAuthStateChange(async () => {
   await refreshAuthState();
-  renderShelf();
+  renderLibrary();
 });
 
-// ---------- init ----------
+// ---------- Init ----------
 (async function init(){
-  showLoading('Đang mở kệ sách…');
+  showLoading('Đang mở thư viện…');
   await refreshAuthState();
   await loadIndex();
-  renderShelf();
+  renderLibrary();
   hideLoading();
 })();
 </script>

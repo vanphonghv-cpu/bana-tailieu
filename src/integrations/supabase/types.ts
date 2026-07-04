@@ -19,6 +19,7 @@ export type Database = {
           cover_path: string | null
           created_at: string
           created_by: string | null
+          document_type: string
           ext: string
           id: string
           kind: string
@@ -33,6 +34,7 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
+          document_type?: string
           ext: string
           id: string
           kind: string
@@ -47,6 +49,7 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
+          document_type?: string
           ext?: string
           id?: string
           kind?: string
