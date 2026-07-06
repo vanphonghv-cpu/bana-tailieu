@@ -1188,13 +1188,25 @@ $('adminLogoutBtn').addEventListener('click', ()=>{
   renderLibrary();
 });
 
+function renderSkeleton(n){
+  const cards = document.getElementById('docsCards');
+  let html = '';
+  for(let i=0;i<n;i++){
+    html += `<div class="skeleton-card">
+      <div class="sk sk-icon"></div>
+      <div><div class="sk sk-title"></div><div class="sk sk-meta"></div></div>
+      <div class="sk sk-btn"></div>
+    </div>`;
+  }
+  cards.innerHTML = html;
+}
+
 // ---------- Init ----------
 (async function init(){
   try{ if(sessionStorage.getItem(ADMIN_FLAG_KEY)==='1') setAdmin(true); }catch(_){}
-  showLoading('Đang mở thư viện…');
+  renderSkeleton(4);
   await loadIndex();
   renderLibrary();
-  hideLoading();
 })();
 </script>
 </body>
