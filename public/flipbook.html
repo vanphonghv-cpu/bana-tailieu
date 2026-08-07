@@ -594,7 +594,23 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&am
 function fmtDate(iso){ if(!iso) return ''; try{ return new Date(iso).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); }catch(_){ return ''; } }
 function fmtSize(b){ if(!b) return ''; if(b<1024) return b+' B'; if(b<1024*1024) return (b/1024).toFixed(1)+' KB'; return (b/(1024*1024)).toFixed(1)+' MB'; }
 function stripDiacritics(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
-function publicUrl(path){ return path ? `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}` : ''; }
+async function signedUrl(path, secs){
+  if(!path) return '';
+  try{
+    const { data, error } = await SB.storage.from(BUCKET).createSignedUrl(path, secs||3600);
+    if(error) return '';
+    return data.signedUrl;
+  }catch(_){ return ''; }
+}
+async function attachCoverUrls(){
+  const paths = libraryIndex.map(b=>b.coverPath).filter(Boolean);
+  if(!paths.length) return;
+  try{
+    const { data } = await SB.storage.from(BUCKET).createSignedUrls(paths, 3600);
+    const map = Object.fromEntries((data||[]).map(d => [d.path, d.signedUrl]));
+    libraryIndex.forEach(b => { if(b.coverPath) b.coverUrl = map[b.coverPath] || ''; });
+  }catch(_){}
+}
 function showLoading(msg){ $('loadingText').textContent = msg||'Đang xử lý…'; $('loadingOverlay').classList.remove('hidden'); }
 function hideLoading(){ $('loadingOverlay').classList.add('hidden'); }
 function showInfo(title, body){ $('infoTitle').textContent = title; $('infoBody').textContent = body; $('infoOverlay').classList.remove('hidden'); }
@@ -652,7 +668,7 @@ function renderStats(){
 function docCardHtml(b){
   const cat = b.documentType;
   const ext = (b.ext||'').toUpperCase();
-  const cover = publicUrl(b.coverPath);
+  const cover = b.coverUrl || '';
   const metaBits = [fmtDate(b.createdAt)];
   if(b.pageCount) metaBits.push(b.pageCount + ' trang');
   if(b.sizeBytes) metaBits.push(fmtSize(b.sizeBytes));
@@ -842,7 +858,7 @@ $('upSubmit').addEventListener('click', async () => {
 
     hideLoading();
     upOverlay.classList.add('hidden');
-    await loadIndex(); renderLibrary();
+    await loadIndex(); await attachCoverUrls(); renderLibrary();
     showInfo('Thành công','Đã lưu tài liệu vào kho dùng chung.');
   }catch(err){
     console.error('upload-failed', err);
@@ -992,7 +1008,7 @@ $('readerFullscreen').addEventListener('click', ()=>{
 });
 $('readerShare').addEventListener('click', async ()=>{
   if(!currentBook) return;
-  const url = publicUrl(currentBook.storagePath);
+  const url = await signedUrl(currentBook.storagePath, 86400);
   try{
     if(navigator.share){ await navigator.share({ title: currentBook.title, url }); return; }
     await navigator.clipboard.writeText(url);
@@ -1265,7 +1281,7 @@ $('authSubmit').addEventListener('click', async () => {
   if($('authPassword').value === ADMIN_PASSWORD){
     setAdmin(true);
     authOverlay.classList.add('hidden');
-    await loadIndex(); renderLibrary();
+    await loadIndex(); await attachCoverUrls(); renderLibrary();
   } else {
     $('authMsg').textContent = 'Mật khẩu không đúng. Vui lòng thử lại.';
   }
@@ -1278,6 +1294,8 @@ $('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await
   try{ if(sessionStorage.getItem(ADMIN_FLAG_KEY)==='1') setAdmin(true); }catch(_){}
   renderSkeleton(6);
   await loadIndex();
+  renderLibrary();
+  await attachCoverUrls();
   renderLibrary();
 })();
 </script>
