@@ -19,13 +19,18 @@ export type Database = {
           cover_path: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           document_type: string
           ext: string
+          featured: boolean
           id: string
+          keywords: string | null
           kind: string
           mime: string
           page_count: number | null
           size_bytes: number | null
+          sort_order: number
+          status: string
           storage_path: string
           title: string
           updated_at: string
@@ -34,13 +39,18 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           document_type?: string
           ext: string
+          featured?: boolean
           id: string
+          keywords?: string | null
           kind: string
           mime: string
           page_count?: number | null
           size_bytes?: number | null
+          sort_order?: number
+          status?: string
           storage_path: string
           title: string
           updated_at?: string
@@ -49,13 +59,18 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           document_type?: string
           ext?: string
+          featured?: boolean
           id?: string
+          keywords?: string | null
           kind?: string
           mime?: string
           page_count?: number | null
           size_bytes?: number | null
+          sort_order?: number
+          status?: string
           storage_path?: string
           title?: string
           updated_at?: string
