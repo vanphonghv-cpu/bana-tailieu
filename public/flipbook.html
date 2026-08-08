@@ -1327,12 +1327,16 @@ $('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await
 // ---------- Init ----------
 (async function init(){
   try{ if(sessionStorage.getItem(ADMIN_FLAG_KEY)==='1') setAdmin(true); }catch(_){}
+  renderCategories();
   renderSkeleton(6);
   await loadIndex();
   renderLibrary();
   await attachCoverUrls();
   renderLibrary();
+  const wantsAdmin = new URLSearchParams(location.search).has('admin');
+  if(wantsAdmin && !isAdmin) $('adminLoginBtn').click();
 })();
+
 </script>
 </body>
 </html>
