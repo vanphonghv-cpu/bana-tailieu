@@ -793,13 +793,32 @@ $('searchClear').addEventListener('click', () => {
   $('searchBox').classList.remove('has-value');
   renderLibrary();
 });
+function pickFilter(code){
+  currentFilter = code;
+  renderLibrary();
+  const y = $('library').getBoundingClientRect().top + window.scrollY - 80;
+  if(window.scrollY > y) window.scrollTo({ top:y, behavior:'smooth' });
+}
 $('filterGroup').addEventListener('click', e => {
   const btn = e.target.closest('.filter-btn'); if(!btn) return;
-  currentFilter = btn.dataset.filter;
-  $('filterGroup').querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b===btn));
-  renderLibrary();
+  pickFilter(btn.dataset.filter);
+});
+$('catList').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-item'); if(!btn) return;
+  pickFilter(btn.dataset.filter);
 });
 $('sortSelect').addEventListener('change', e => { currentSort = e.target.value; renderLibrary(); });
+document.querySelectorAll('.navlink[data-scroll]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const el = $(btn.dataset.scroll === 'top' ? 'top' : 'library');
+    window.scrollTo({ top: btn.dataset.scroll === 'top' ? 0 : el.getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth' });
+  });
+});
+$('headerSearchBtn').addEventListener('click', () => {
+  window.scrollTo({ top:0, behavior:'smooth' });
+  setTimeout(()=> $('searchInput').focus(), 260);
+});
+
 
 // ---------- Upload ----------
 const upOverlay = $('uploadOverlay');
