@@ -742,9 +742,12 @@ function buildGrid(list){
 }
 
 function renderLibrary(){
-  renderStats();
+  renderCategories();
   const list = getFiltered();
   const root = $('sections');
+  const meta = navItems().find(c => c.code === currentFilter) || navItems()[0];
+  $('contentTitle').textContent = meta.label;
+  $('contentCount').textContent = list.length ? `(${list.length} tài liệu)` : '';
   root.innerHTML = '';
 
   if(list.length === 0){
@@ -753,28 +756,15 @@ function renderLibrary(){
       ? `<div class="empty"><h4>Không tìm thấy tài liệu phù hợp</h4><p>Hãy thử từ khóa khác hoặc chọn danh mục khác.</p></div>`
       : `<div class="empty">
            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#B9AF9C" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-           <h4>Chưa có tài liệu nào trong kho</h4>
-           <p>Quản trị viên có thể bấm "Tải lên" để thêm tài liệu đầu tiên.</p>
+           <h4>Chưa có tài liệu trong danh mục này</h4>
+           <p>Nội dung sẽ được cập nhật trong thời gian tới.</p>
          </div>`;
     return;
   }
 
-  const groups = currentFilter === 'all'
-    ? CATEGORIES.map(c => ({ code:c.code, label:c.label, items:list.filter(b=>b.documentType===c.code) })).filter(g=>g.items.length)
-    : [{ code:currentFilter, label:CAT_LABEL[currentFilter], items:list }];
-
-  groups.forEach(g => {
-    const sec = document.createElement('section');
-    sec.className = 'section cat-' + g.code;
-    sec.innerHTML = `
-      <div class="section-head">
-        <div class="section-title"><span class="bar"></span><h2>${escapeHtml(g.label)}</h2></div>
-        <span class="section-count">${g.items.length} tài liệu</span>
-      </div>`;
-    sec.appendChild(buildGrid(g.items));
-    root.appendChild(sec);
-  });
+  root.appendChild(buildGrid(list));
 }
+
 
 function renderSkeleton(n){
   const root = $('sections');
