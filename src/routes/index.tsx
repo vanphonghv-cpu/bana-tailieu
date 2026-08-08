@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,26 +19,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  beforeLoad: () => {
+    throw redirect({ href: "/flipbook.html" });
+  },
+  component: () => null,
 });
 
-function Index() {
-  useEffect(() => {
-    window.location.replace("/flipbook.html");
-  }, []);
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#1C0E0F",
-        color: "#E7CE86",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
-      Đang mở giá sách…
-    </div>
-  );
-}

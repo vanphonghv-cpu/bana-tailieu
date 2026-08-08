@@ -9,8 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuanTriRouteImport } from './routes/quan-tri'
 import { Route as IndexRouteImport } from './routes/index'
 
+const QuanTriRoute = QuanTriRouteImport.update({
+  id: '/quan-tri',
+  path: '/quan-tri',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +25,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/quan-tri': typeof QuanTriRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/quan-tri': typeof QuanTriRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/quan-tri': typeof QuanTriRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/quan-tri'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/quan-tri'
+  id: '__root__' | '/' | '/quan-tri'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  QuanTriRoute: typeof QuanTriRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quan-tri': {
+      id: '/quan-tri'
+      path: '/quan-tri'
+      fullPath: '/quan-tri'
+      preLoaderRoute: typeof QuanTriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  QuanTriRoute: QuanTriRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
