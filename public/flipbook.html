@@ -87,7 +87,9 @@
 
   /* ---------- Page / layout ---------- */
   .page{ max-width:1240px; margin:0 auto; padding:26px 18px 60px; }
-  .layout{ display:grid; grid-template-columns:1fr; gap:24px; align-items:start; }
+  .layout{ display:grid; grid-template-columns:minmax(0,1fr); gap:24px; align-items:start; }
+  .layout > *{ min-width:0; }
+
   @media(min-width:1000px){ .layout{ grid-template-columns:236px minmax(0,1fr); gap:30px; } }
 
   /* ---------- Sidebar ---------- */
