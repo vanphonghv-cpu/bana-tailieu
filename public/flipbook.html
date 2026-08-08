@@ -672,20 +672,32 @@ function getFiltered(){
   return list;
 }
 
-function renderStats(){
-  const total = libraryIndex.length;
-  const parts = [`<div class="stat"><b>${total}</b>Tổng tài liệu</div>`];
-  CATEGORIES.forEach(c => {
-    parts.push(`<div class="stat"><b>${libraryIndex.filter(b=>b.documentType===c.code).length}</b>${escapeHtml(c.short)}</div>`);
-  });
-  $('stats').innerHTML = parts.join('');
+function catCounts(){
+  const c = { all: libraryIndex.length };
+  CATEGORIES.forEach(x => { c[x.code] = libraryIndex.filter(b=>b.documentType===x.code).length; });
+  return c;
+}
+function navItems(){
+  return [{ code:'all', label:'Tất cả tài liệu', short:'Tất cả' }].concat(CATEGORIES);
+}
+function renderCategories(){
+  const n = catCounts();
+  $('catList').innerHTML = navItems().map(c =>
+    `<button class="cat-item${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
+       <span>${escapeHtml(c.label)}</span><span class="n">${n[c.code]||0}</span>
+     </button>`).join('');
+  $('filterGroup').innerHTML = navItems().map(c =>
+    `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
+       ${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
+     </button>`).join('');
 }
 
 function docCardHtml(b){
   const cat = b.documentType;
   const ext = (b.ext||'').toUpperCase();
   const cover = b.coverUrl || '';
-  const metaBits = [fmtDate(b.createdAt)];
+  const metaBits = [];
+  if(b.createdAt) metaBits.push('Cập nhật: ' + fmtDate(b.createdAt));
   if(b.pageCount) metaBits.push(b.pageCount + ' trang');
   if(b.sizeBytes) metaBits.push(fmtSize(b.sizeBytes));
   return `
@@ -694,20 +706,17 @@ function docCardHtml(b){
         ${cover
           ? `<img src="${escapeHtml(cover)}" alt="Ảnh bìa: ${escapeHtml(b.title)}" loading="lazy">`
           : `<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#B9AF9C" stroke-width="1.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`}
-        <span class="doc-badge ${cat}">${escapeHtml(CAT_SHORT[cat]||'')}</span>
-        <span class="doc-ext ${EXT_CLASS[b.ext]||'ext-other'}">${escapeHtml(ext||'FILE')}</span>
-        ${b.featured ? '<span class="doc-star">★ Nổi bật</span>' : ''}
+        <span class="doc-ext">${escapeHtml(ext||'FILE')}</span>
+        ${b.featured ? '<span class="doc-star">★ Mới cập nhật</span>' : ''}
       </div>
       <div class="doc-body">
+        <p class="doc-cat">${escapeHtml(CAT_SHORT[cat]||'')}</p>
         <h3 class="doc-title">${escapeHtml(b.title)}</h3>
-        ${b.description ? `<p class="doc-desc">${escapeHtml(b.description)}</p>` : ''}
-        <div class="doc-meta">${metaBits.map((m,i)=> (i?'<span class="dot">·</span>':'')+`<span>${escapeHtml(m)}</span>`).join('')}</div>
+        <p class="doc-desc">${escapeHtml(b.description||'')}</p>
+        <div class="doc-meta">${escapeHtml(metaBits.join(' · '))}</div>
       </div>
       <div class="doc-actions">
-        <button class="btn sm primary" data-act="view" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          ${b.kind==='pdf' ? 'Xem' : 'Mở tệp'}
-        </button>
+        <button class="doc-cta" data-act="view" type="button">Xem tài liệu →</button>
         <button class="btn sm" data-act="download" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
           Tải xuống
@@ -717,6 +726,7 @@ function docCardHtml(b){
       </div>
     </article>`;
 }
+
 
 function buildGrid(list){
   const wrap = document.createElement('div');
