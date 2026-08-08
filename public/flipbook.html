@@ -328,54 +328,58 @@
         <span>Văn phòng Đảng ủy xã Bà Nà</span>
       </div>
     </div>
-    <div class="header-actions">
+    <nav class="nav">
+      <button class="navlink" type="button" data-scroll="top">Trang chủ</button>
+      <button class="navlink" type="button" data-scroll="library">Tài liệu</button>
+      <button class="navlink" type="button" id="guideBtn">Hướng dẫn</button>
+      <button class="icon-btn keep" id="headerSearchBtn" type="button" aria-label="Tìm kiếm tài liệu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
       <span class="admin-badge">Quản trị</span>
       <button class="btn sm primary admin-only" id="openUploadBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         Tải lên
       </button>
-      <button class="btn sm" id="guideBtn" type="button">Hướng dẫn</button>
-    </div>
+    </nav>
   </div>
 </header>
 
-<section class="intro">
+<section class="intro" id="top">
   <div class="intro-inner">
-    <div>
-      <h1>Kho tài liệu số — Văn phòng Đảng ủy xã Bà Nà</h1>
-      <p>Nơi lưu trữ, tra cứu và tải xuống tài liệu chuyển đổi số, tài liệu họp/hội nghị và nghiệp vụ Văn phòng. Dữ liệu dùng chung, cập nhật thường xuyên.</p>
-      <div class="rule"></div>
-      <div class="stats" id="stats"></div>
-    </div>
-    <div class="intro-art">
-      <img src="/hero-illustration.png" alt="Minh họa kho tài liệu số" width="1024" height="768" loading="lazy">
-    </div>
-  </div>
-</section>
-
-<main class="page">
-  <div class="toolbar">
+    <h1>Kho tài liệu số Văn phòng Đảng ủy xã Bà Nà</h1>
+    <p>Lưu trữ, tra cứu và tải xuống tài liệu chuyển đổi số, tài liệu họp/hội nghị và nghiệp vụ Văn phòng.</p>
     <div class="search-box" id="searchBox">
       <span class="ic">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       </span>
-      <input id="searchInput" type="search" placeholder="Tìm theo tên, mô tả, từ khóa…" autocomplete="off">
+      <input id="searchInput" type="search" placeholder="Tìm kiếm tài liệu…" autocomplete="off">
       <button class="clear" id="searchClear" aria-label="Xóa tìm kiếm" type="button">×</button>
     </div>
-    <div class="filter-group" id="filterGroup">
-      <button class="filter-btn active" data-filter="all" type="button">Tất cả</button>
-      <button class="filter-btn" data-filter="digital-transformation" type="button">Chuyển đổi số</button>
-      <button class="filter-btn" data-filter="meeting-conference" type="button">Họp / Hội nghị</button>
-      <button class="filter-btn" data-filter="office-operations" type="button">Nghiệp vụ Văn phòng</button>
-    </div>
-    <select class="btn" id="sortSelect" aria-label="Sắp xếp">
-      <option value="new">Mới nhất</option>
-      <option value="old">Cũ nhất</option>
-      <option value="az">Tên A → Z</option>
-    </select>
   </div>
+</section>
 
-  <div id="sections"></div>
+<main class="page" id="library">
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Danh mục</h3>
+      <div id="catList"></div>
+    </aside>
+    <div>
+      <div class="chips" id="filterGroup"></div>
+      <div class="content-head">
+        <div class="ttl">
+          <h2 id="contentTitle">Tất cả tài liệu</h2>
+          <span class="count" id="contentCount"></span>
+        </div>
+        <select id="sortSelect" aria-label="Sắp xếp">
+          <option value="new">Mới nhất</option>
+          <option value="old">Cũ nhất</option>
+          <option value="az">Tên A → Z</option>
+        </select>
+      </div>
+      <div id="sections"></div>
+    </div>
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -383,11 +387,12 @@
     <strong>VĂN PHÒNG ĐẢNG ỦY XÃ BÀ NÀ</strong><br>
     Kho tài liệu số phục vụ công tác chuyển đổi số khối Đảng.
     <div class="links">
-      <button class="link-btn" id="adminLoginBtn" type="button">Đăng nhập quản trị</button>
+      <button class="link-btn" id="adminLoginBtn" type="button">Quản trị hệ thống</button>
       <button class="link-btn admin-only" id="adminLogoutBtn" type="button">Thoát chế độ quản trị</button>
     </div>
   </div>
 </footer>
+
 
 <!-- READER -->
 <div id="reader" class="hidden">
