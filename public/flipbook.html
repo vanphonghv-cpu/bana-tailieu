@@ -1119,6 +1119,7 @@ $('readerRotate').addEventListener('click', ()=>{
   rotateDeg = (rotateDeg + 90) % 360;
   zoomState.panX = 0; zoomState.panY = 0;
   showReaderHint(rotateDeg % 180 === 0 ? 'Hướng đọc dọc' : 'Hướng đọc ngang');
+  applyZoomTransform();
   refitReader();
 });
 document.addEventListener('fullscreenchange', ()=>{
@@ -1153,6 +1154,7 @@ async function fitBookFrameToPage(n){
     const bf = $('bookFrame');
     bf.classList.add('fitted');
     bf.style.width = Math.round(w)+'px'; bf.style.height = Math.round(h)+'px';
+    applyZoomTransform();
   }catch(_){}
 }
 async function getPageImage(n){
