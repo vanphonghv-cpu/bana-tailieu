@@ -435,6 +435,9 @@
     <div class="reader-tools">
       <button class="reader-btn zoom" id="zoomOut" aria-label="Thu nhỏ" disabled type="button">−</button>
       <button class="reader-btn zoom" id="zoomIn" aria-label="Phóng to" type="button">+</button>
+      <button class="reader-btn" id="readerRotate" aria-label="Xoay trang" title="Xoay trang" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+      </button>
       <button class="reader-btn" id="readerFullscreen" aria-label="Toàn màn hình" title="Toàn màn hình" type="button">
         <svg id="fsIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
       </button>
@@ -1055,6 +1058,7 @@ async function openBook(book){
     $('readerTitle').textContent = book.title;
     $('reader').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    rotateDeg = 0;
     resetZoom();
     setImmersive(false);
     showReaderHint('Chạm giữa trang để ẩn/hiện thanh công cụ');
@@ -1111,6 +1115,12 @@ $('readerFullscreen').addEventListener('click', async ()=>{
     }
   }catch(_){ toggleImmersive(); }
 });
+$('readerRotate').addEventListener('click', ()=>{
+  rotateDeg = (rotateDeg + 90) % 360;
+  zoomState.panX = 0; zoomState.panY = 0;
+  showReaderHint(rotateDeg % 180 === 0 ? 'Hướng đọc dọc' : 'Hướng đọc ngang');
+  refitReader();
+});
 document.addEventListener('fullscreenchange', ()=>{
   const fs = !!document.fullscreenElement;
   $('fsIcon').innerHTML = fs
@@ -1136,7 +1146,8 @@ async function fitBookFrameToPage(n){
     const aspect = vp.width/vp.height;
     const stage = $('readerStage').getBoundingClientRect();
     const pad = window.innerWidth<=520 ? 10 : 24;
-    const availW = Math.max(200, stage.width-pad), availH = Math.max(200, stage.height-8);
+    let availW = Math.max(200, stage.width-pad), availH = Math.max(200, stage.height-8);
+    if(rotateDeg % 180 !== 0){ const t = availW; availW = availH; availH = t; }
     let w = availW, h = w/aspect;
     if(h > availH){ h = availH; w = h*aspect; }
     const bf = $('bookFrame');
@@ -1246,13 +1257,14 @@ function programmaticFlip(dir){
 
 // ---------- Zoom/pan ----------
 let zoomState = { scale:1, panX:0, panY:0 };
+let rotateDeg = 0;
 let hiResBoost = false, boostTimer = null;
 const activePointers = new Map();
 let pinchStart = null, panStart = null;
 const zoomInBtn = $('zoomIn'), zoomOutBtn = $('zoomOut');
 function applyZoomTransform(){
   const bf = $('bookFrame');
-  bf.style.transform = `translate(${zoomState.panX}px, ${zoomState.panY}px) scale(${zoomState.scale})`;
+  bf.style.transform = `translate(${zoomState.panX}px, ${zoomState.panY}px) scale(${zoomState.scale}) rotate(${rotateDeg}deg)`;
   bf.classList.toggle('zoomed', zoomState.scale !== 1);
   $('readerStage').classList.toggle('is-zoomed', zoomState.scale > 1.02);
   zoomOutBtn.disabled = zoomState.scale <= 1.02;
