@@ -1344,14 +1344,22 @@ function endDrag(e){
 readerStage.addEventListener('pointerup', endDrag);
 readerStage.addEventListener('pointercancel', endDrag);
 
-let lastTapAt=0, lastTapX=0, lastTapY=0;
+let lastTapAt=0, lastTapX=0, lastTapY=0, singleTapT=null;
 readerStage.addEventListener('click', e => {
   const now=Date.now();
   const near=Math.abs(e.clientX-lastTapX)<40 && Math.abs(e.clientY-lastTapY)<40;
+  const inZone = e.target.classList && e.target.classList.contains('page-tap-zone');
   if(now-lastTapAt<320 && near){
+    clearTimeout(singleTapT);
     if(zoomState.scale>1.02) setZoom(1); else setZoom(2.2, e.clientX, e.clientY);
     lastTapAt=0; e.stopPropagation();
-  } else { lastTapAt=now; lastTapX=e.clientX; lastTapY=e.clientY; }
+  } else {
+    lastTapAt=now; lastTapX=e.clientX; lastTapY=e.clientY;
+    clearTimeout(singleTapT);
+    if(!inZone && zoomState.scale<=1.02){
+      singleTapT = setTimeout(()=> toggleImmersive(), 330);
+    }
+  }
 }, true);
 readerStage.addEventListener('wheel', e => {
   if(!e.ctrlKey && !e.metaKey) return;
@@ -1365,13 +1373,17 @@ document.addEventListener('keydown', e => {
   if($('reader').classList.contains('hidden')) return;
   if(e.key==='ArrowRight') programmaticFlip('next');
   if(e.key==='ArrowLeft') programmaticFlip('prev');
-  if(e.key==='Escape') closeReader();
+  if(e.key==='f' || e.key==='F') toggleImmersive();
+  if(e.key==='Escape'){ if($('reader').classList.contains('immersive')) setImmersive(false); else closeReader(); }
 });
 let resizeT=null;
-window.addEventListener('resize', ()=>{
+function onViewportChange(){
   if($('reader').classList.contains('hidden')||!currentPdfDoc) return;
   clearTimeout(resizeT); resizeT=setTimeout(()=>{ pageImageCache.clear(); renderCurrentPage(); }, 250);
-});
+}
+window.addEventListener('resize', onViewportChange);
+window.addEventListener('orientationchange', ()=> setTimeout(onViewportChange, 300));
+if(window.visualViewport) window.visualViewport.addEventListener('resize', onViewportChange);
 
 // ---------- Admin (password gate) ----------
 const authOverlay = $('authOverlay');
