@@ -1061,7 +1061,16 @@ async function openBook(book){
     rotateDeg = 0;
     resetZoom();
     setImmersive(false);
-    showReaderHint('Chạm giữa trang để ẩn/hiện thanh công cụ');
+    try{
+      const p1 = await doc.getPage(currentPage);
+      const v1 = p1.getViewport({scale:1});
+      if(window.innerWidth <= 520 && window.innerWidth < window.innerHeight && v1.width/v1.height > 1.25){
+        rotateDeg = 90;
+        showReaderHint('Đã xoay ngang cho dễ đọc — chạm nút xoay để đổi lại');
+      } else {
+        showReaderHint('Chạm giữa trang để ẩn/hiện thanh công cụ');
+      }
+    }catch(_){ showReaderHint('Chạm giữa trang để ẩn/hiện thanh công cụ'); }
     renderCurrentPage(); prefetchNeighbors();
   }catch(err){
     console.error(err); hideLoading();
