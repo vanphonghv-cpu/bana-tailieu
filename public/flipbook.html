@@ -435,8 +435,8 @@
     <div class="reader-tools">
       <button class="reader-btn zoom" id="zoomOut" aria-label="Thu nhỏ" disabled type="button">−</button>
       <button class="reader-btn zoom" id="zoomIn" aria-label="Phóng to" type="button">+</button>
-      <button class="reader-btn opt-hide" id="readerFullscreen" aria-label="Toàn màn hình" title="Toàn màn hình" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      <button class="reader-btn" id="readerFullscreen" aria-label="Toàn màn hình" title="Toàn màn hình" type="button">
+        <svg id="fsIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
       </button>
       <button class="reader-btn opt-hide" id="readerShare" aria-label="Chia sẻ liên kết" title="Chia sẻ liên kết" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
@@ -453,6 +453,7 @@
     </div>
     <div class="page-tap-zone left" id="zoneLeft"></div>
     <div class="page-tap-zone right" id="zoneRight"></div>
+    <div class="reader-hint" id="readerHint">Chạm giữa trang để ẩn/hiện thanh công cụ</div>
   </div>
   <div class="reader-bottom">
     <div class="page-indicator" id="pageIndicator">— / —</div>
