@@ -1135,7 +1135,8 @@ async function fitBookFrameToPage(n){
     const vp = page.getViewport({scale:1});
     const aspect = vp.width/vp.height;
     const stage = $('readerStage').getBoundingClientRect();
-    const availW = Math.max(200, stage.width-24), availH = Math.max(200, stage.height-12);
+    const pad = window.innerWidth<=520 ? 10 : 24;
+    const availW = Math.max(200, stage.width-pad), availH = Math.max(200, stage.height-8);
     let w = availW, h = w/aspect;
     if(h > availH){ h = availH; w = h*aspect; }
     const bf = $('bookFrame');
