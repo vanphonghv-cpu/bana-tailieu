@@ -1056,6 +1056,8 @@ async function openBook(book){
     $('reader').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     resetZoom();
+    setImmersive(false);
+    showReaderHint('Chạm giữa trang để ẩn/hiện thanh công cụ');
     renderCurrentPage(); prefetchNeighbors();
   }catch(err){
     console.error(err); hideLoading();
@@ -1065,15 +1067,56 @@ async function openBook(book){
 function closeReader(){
   $('reader').classList.add('hidden');
   document.body.style.overflow = '';
+  setImmersive(false);
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{});
   currentPdfDoc = null; currentBook = null;
   renderLibrary();
 }
+
+/* --- Chế độ đọc toàn màn hình / ẩn thanh công cụ --- */
+let hintTimer = null;
+function showReaderHint(text){
+  const h = $('readerHint'); if(!h) return;
+  h.textContent = text; h.classList.add('show');
+  clearTimeout(hintTimer); hintTimer = setTimeout(()=> h.classList.remove('show'), 1800);
+}
+function setImmersive(on){
+  $('reader').classList.toggle('immersive', !!on);
+  refitReader();
+}
+function toggleImmersive(){
+  const on = !$('reader').classList.contains('immersive');
+  setImmersive(on);
+  showReaderHint(on ? 'Chế độ đọc toàn màn hình' : 'Đã hiện thanh công cụ');
+}
+function refitReader(){
+  if($('reader').classList.contains('hidden') || !currentPdfDoc) return;
+  clearTimeout(refitT);
+  refitT = setTimeout(()=>{ pageImageCache.clear(); renderCurrentPage(); }, 180);
+}
+let refitT = null;
+
 $('readerBack').addEventListener('click', closeReader);
 $('readerDownload').addEventListener('click', ()=> currentBook && downloadBook(currentBook));
-$('readerFullscreen').addEventListener('click', ()=>{
+$('readerFullscreen').addEventListener('click', async ()=>{
   const el = $('reader');
-  if(!document.fullscreenElement){ (el.requestFullscreen ? el.requestFullscreen() : Promise.resolve()).catch(()=>{}); }
-  else { document.exitFullscreen && document.exitFullscreen(); }
+  try{
+    if(!document.fullscreenElement){
+      if(el.requestFullscreen) await el.requestFullscreen();
+      else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      setImmersive(true);
+    } else {
+      if(document.exitFullscreen) await document.exitFullscreen();
+      setImmersive(false);
+    }
+  }catch(_){ toggleImmersive(); }
+});
+document.addEventListener('fullscreenchange', ()=>{
+  const fs = !!document.fullscreenElement;
+  $('fsIcon').innerHTML = fs
+    ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
+    : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
+  refitReader();
 });
 $('readerShare').addEventListener('click', async ()=>{
   if(!currentBook) return;
