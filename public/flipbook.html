@@ -659,6 +659,41 @@
   </div>
 </div>
 
+<!-- Tải bản tin hằng ngày -->
+<div class="modal-overlay hidden" id="bulUploadOverlay">
+  <div class="modal-card">
+    <h3>Tải bản tin mới</h3>
+    <p>Chọn tệp PDF của bản tin để đọc trực tuyến. Nếu có tệp gốc Word, có thể tải kèm để tải xuống.</p>
+    <div class="form-row">
+      <label for="bulFile">Tệp bản tin (PDF)</label>
+      <input type="file" id="bulFile" accept=".pdf">
+    </div>
+    <div class="form-row">
+      <label for="bulSource">Tệp gốc (Word/PPT/Excel — không bắt buộc)</label>
+      <input type="file" id="bulSource" accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx">
+    </div>
+    <div class="form-row">
+      <label for="bulTitle">Tiêu đề bản tin</label>
+      <input type="text" id="bulTitle" placeholder="Ví dụ: Bản tin hằng ngày">
+    </div>
+    <div class="form-row">
+      <label for="bulDate">Ngày bản tin</label>
+      <input type="date" id="bulDate">
+    </div>
+    <div class="form-row">
+      <label for="bulTime">Giờ cập nhật</label>
+      <input type="time" id="bulTime" value="07:00">
+    </div>
+    <div class="msg err" id="bulMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="bulCancel" type="button">Hủy</button>
+      <button class="modal-btn confirm" id="bulSubmit" type="button">Lưu bản tin</button>
+    </div>
+  </div>
+</div>
+
+
+
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
