@@ -1525,13 +1525,13 @@ $('authSubmit').addEventListener('click', async () => {
   if($('authPassword').value === ADMIN_PASSWORD){
     setAdmin(true);
     authOverlay.classList.add('hidden');
-    await loadIndex(); await attachCoverUrls(); renderLibrary();
+    await loadIndex(); await attachCoverUrls(); renderLibrary(); renderBulletins();
   } else {
     $('authMsg').textContent = 'Mật khẩu không đúng. Vui lòng thử lại.';
   }
 });
 $('authPassword').addEventListener('keydown', e => { if(e.key==='Enter') $('authSubmit').click(); });
-$('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await loadIndex(); renderLibrary(); });
+$('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await loadIndex(); renderLibrary(); renderBulletins(); });
 
 // ---------- Bản tin hằng ngày ----------
 let bulletins = [];
