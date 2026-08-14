@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_bulletins: {
+        Row: {
+          bulletin_date: string
+          cover_path: string | null
+          created_at: string
+          file_size: number | null
+          id: string
+          page_count: number | null
+          preview_path: string
+          source_ext: string | null
+          source_path: string | null
+          source_size: number | null
+          title: string
+          update_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          bulletin_date: string
+          cover_path?: string | null
+          created_at?: string
+          file_size?: number | null
+          id: string
+          page_count?: number | null
+          preview_path: string
+          source_ext?: string | null
+          source_path?: string | null
+          source_size?: number | null
+          title: string
+          update_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bulletin_date?: string
+          cover_path?: string | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          page_count?: number | null
+          preview_path?: string
+          source_ext?: string | null
+          source_path?: string | null
+          source_size?: number | null
+          title?: string
+          update_time?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           cover_path: string | null
