@@ -1533,6 +1533,185 @@ $('authSubmit').addEventListener('click', async () => {
 $('authPassword').addEventListener('keydown', e => { if(e.key==='Enter') $('authSubmit').click(); });
 $('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await loadIndex(); renderLibrary(); });
 
+// ---------- Bản tin hằng ngày ----------
+let bulletins = [];
+const BUL_READ_KEY = 'bulletin-read:';
+function bulRead(id){ try{ return localStorage.getItem(BUL_READ_KEY+id)==='1'; }catch(_){ return false; } }
+function setBulRead(id){ try{ localStorage.setItem(BUL_READ_KEY+id,'1'); }catch(_){} }
+function fmtBulDate(d){
+  if(!d) return '';
+  const p = String(d).split('-');
+  return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : String(d);
+}
+async function loadBulletins(){
+  const { data, error } = await SB.from('daily_bulletins')
+    .select('id,bulletin_date,update_time,title,source_path,source_ext,preview_path,cover_path,page_count,file_size,created_at')
+    .order('bulletin_date', { ascending:false })
+    .order('created_at', { ascending:false });
+  if(error){ console.error('bulletin-load-failed', error); bulletins=[]; return; }
+  bulletins = (data||[]).map(r => ({
+    id:r.id, date:r.bulletin_date, time:r.update_time||'', title:r.title||'Bản tin hằng ngày',
+    sourcePath:r.source_path, sourceExt:r.source_ext, previewPath:r.preview_path, coverPath:r.cover_path,
+    pageCount:r.page_count, fileSize:r.file_size,
+  }));
+  const paths = bulletins.map(b=>b.coverPath).filter(Boolean);
+  if(paths.length){
+    try{
+      const { data:sg } = await SB.storage.from(BUCKET).createSignedUrls(paths, 3600);
+      const map = Object.fromEntries((sg||[]).map(d=>[d.path, d.signedUrl]));
+      bulletins.forEach(b => { if(b.coverPath) b.coverUrl = map[b.coverPath]||''; });
+    }catch(_){}
+  }
+}
+function bulletinAsBook(b){
+  return { id:'bulletin:'+b.id, title:`${b.title} — ngày ${fmtBulDate(b.date)}`,
+           kind:'pdf', ext:'pdf', storagePath:b.previewPath, pageCount:b.pageCount,
+           lastPage:getProgress('bulletin:'+b.id) };
+}
+function renderBulletins(){
+  const wrap = $('bulletinWrap');
+  const host = $('bulletinCardHost');
+  if(!bulletins.length){
+    wrap.style.display = isAdmin ? '' : 'none';
+    host.innerHTML = isAdmin ? '<div class="empty" style="padding:14px 0"><h4>Chưa có bản tin nào</h4><p>Bấm “Tải bản tin mới” để phát hành bản tin đầu tiên.</p></div>' : '';
+    $('bulletinToggle').style.display = 'none';
+    $('bulletinList').classList.add('hidden');
+    return;
+  }
+  wrap.style.display = '';
+  $('bulletinToggle').style.display = bulletins.length > 1 ? '' : 'none';
+  const b = bulletins[0];
+  const read = bulRead(b.id);
+  host.innerHTML = `
+    <div class="bulletin-card">
+      <div class="bulletin-thumb" ${b.coverUrl?`style="background-image:url('${b.coverUrl}')"`:''}>${b.coverUrl?'':'PDF'}</div>
+      <div class="bulletin-main">
+        <div class="bulletin-kicker">Bản tin hằng ngày
+          <span class="bulletin-badge ${read?'read':''}">${read?'ĐÃ ĐỌC':'<span class="bulletin-dot"></span>MỚI'}</span>
+        </div>
+        <div class="bulletin-title">${escapeHtml(b.title)} • ${fmtBulDate(b.date)}</div>
+        <div class="bulletin-sub">${b.time?('Cập nhật '+escapeHtml(b.time)):'Đã phát hành'}${b.pageCount?(' • '+b.pageCount+' trang'):''}</div>
+      </div>
+      <div class="bulletin-actions">
+        <button class="bulletin-btn" data-bul="read" data-id="${b.id}" type="button">Đọc bản tin</button>
+        <button class="bulletin-btn ghost" data-bul="download" data-id="${b.id}" type="button">Tải xuống</button>
+      </div>
+    </div>`;
+  $('bulletinList').innerHTML = bulletins.map(x => `
+    <div class="bulletin-row">
+      <div class="rt">
+        <b>Bản tin ngày ${fmtBulDate(x.date)}</b>
+        <span>${escapeHtml(x.title)}${x.time?(' • '+escapeHtml(x.time)):''}${x.pageCount?(' • '+x.pageCount+' trang'):''}</span>
+      </div>
+      <button class="btn-mini" data-bul="read" data-id="${x.id}" type="button">Đọc</button>
+      <button class="btn-mini" data-bul="download" data-id="${x.id}" type="button">Tải</button>
+      <button class="btn-mini danger admin-only" data-bul="delete" data-id="${x.id}" type="button">Xóa</button>
+    </div>`).join('');
+}
+$('bulletinToggle').addEventListener('click', ()=>{
+  const list = $('bulletinList');
+  const hidden = list.classList.toggle('hidden');
+  $('bulletinToggle').textContent = hidden ? 'Xem các bản tin trước →' : 'Thu gọn danh sách bản tin';
+});
+$('bulletinWrap').addEventListener('click', async (e)=>{
+  const btn = e.target.closest('[data-bul]'); if(!btn) return;
+  const b = bulletins.find(x => x.id === btn.dataset.id); if(!b) return;
+  const act = btn.dataset.bul;
+  if(act === 'read'){ setBulRead(b.id); await openBook(bulletinAsBook(b)); renderBulletins(); return; }
+  if(act === 'download'){
+    downloadBook({ title:`Ban-tin-${fmtBulDate(b.date).replace(/\//g,'-')}`,
+                   ext: b.sourcePath ? (b.sourceExt||'docx') : 'pdf',
+                   storagePath: b.sourcePath || b.previewPath });
+    return;
+  }
+  if(act === 'delete'){
+    if(!isAdmin){ showInfo('Cần quyền quản trị','Vui lòng đăng nhập quản trị.'); return; }
+    showLoading('Đang xóa bản tin…');
+    try{
+      const paths = [b.previewPath, b.sourcePath, b.coverPath].filter(Boolean);
+      if(paths.length) await SB.storage.from(BUCKET).remove(paths);
+      const { error } = await SB.from('daily_bulletins').delete().eq('id', b.id);
+      if(error) throw error;
+      await loadBulletins(); renderBulletins(); hideLoading();
+    }catch(err){ hideLoading(); showInfo('Xóa thất bại', (err&&err.message)||'Lỗi'); }
+  }
+});
+$('openBulletinUploadBtn').addEventListener('click', ()=>{
+  if(!isAdmin){ showInfo('Cần quyền quản trị','Vui lòng đăng nhập quản trị để tải bản tin.'); return; }
+  $('bulFile').value=''; $('bulSource').value=''; $('bulMsg').textContent='';
+  $('bulTitle').value = 'Bản tin hằng ngày';
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  $('bulDate').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  $('bulTime').value = '07:00';
+  $('bulUploadOverlay').classList.remove('hidden');
+});
+$('bulCancel').addEventListener('click', ()=> $('bulUploadOverlay').classList.add('hidden'));
+$('bulSubmit').addEventListener('click', async ()=>{
+  if(!isAdmin){ $('bulMsg').textContent='Cần đăng nhập quản trị.'; return; }
+  const pdf = $('bulFile').files[0];
+  const src = $('bulSource').files[0];
+  const date = $('bulDate').value;
+  const title = $('bulTitle').value.trim() || 'Bản tin hằng ngày';
+  if(!pdf){ $('bulMsg').textContent='Vui lòng chọn tệp PDF của bản tin.'; return; }
+  if((pdf.name.split('.').pop()||'').toLowerCase() !== 'pdf'){ $('bulMsg').textContent='Tệp bản tin phải là PDF.'; return; }
+  if(!date){ $('bulMsg').textContent='Vui lòng chọn ngày bản tin.'; return; }
+  if(pdf.size > 200*1024*1024){ $('bulMsg').textContent='Tệp vượt quá 200MB.'; return; }
+
+  $('bulSubmit').disabled = true;
+  const id = 'bul' + Date.now() + Math.floor(Math.random()*1000);
+  const previewPath = `bulletins/${id}.pdf`;
+  let sourcePath = null, coverPath = null;
+  try{
+    showLoading('Đang tải bản tin lên máy chủ…');
+    const { error:e1 } = await SB.storage.from(BUCKET).upload(previewPath, pdf, { contentType:'application/pdf', upsert:false });
+    if(e1) throw e1;
+
+    let pageCount = null;
+    try{
+      showLoading('Đang tạo ảnh bìa bản tin…');
+      const doc = await pdfjsLib.getDocument({data:new Uint8Array(await pdf.arrayBuffer())}).promise;
+      pageCount = doc.numPages;
+      const cover = await renderCoverBlob(doc);
+      if(cover){
+        coverPath = `covers/${id}.jpg`;
+        const { error:e2 } = await SB.storage.from(BUCKET).upload(coverPath, cover, { contentType:'image/jpeg', upsert:true });
+        if(e2) coverPath = null;
+      }
+    }catch(err){ console.warn('bulletin-pdf-warn', err); }
+
+    let sourceExt = null;
+    if(src){
+      sourceExt = (src.name.split('.').pop()||'').toLowerCase();
+      const info = KIND_BY_EXT[sourceExt];
+      sourcePath = `bulletins/${id}-goc.${sourceExt}`;
+      showLoading('Đang tải tệp gốc…');
+      const { error:e3 } = await SB.storage.from(BUCKET).upload(sourcePath, src, { contentType:(info&&info.mime)||'application/octet-stream', upsert:false });
+      if(e3){ sourcePath = null; sourceExt = null; }
+    }
+
+    showLoading('Đang lưu thông tin bản tin…');
+    const { error:e4 } = await SB.from('daily_bulletins').insert({
+      id, bulletin_date:date, update_time:$('bulTime').value||null, title,
+      preview_path:previewPath, cover_path:coverPath,
+      source_path:sourcePath, source_ext:sourceExt, source_size: src ? src.size : null,
+      page_count:pageCount, file_size:pdf.size,
+    });
+    if(e4) throw e4;
+
+    hideLoading();
+    $('bulUploadOverlay').classList.add('hidden');
+    await loadBulletins(); renderBulletins();
+    showInfo('Thành công','Đã phát hành bản tin ngày ' + fmtBulDate(date) + '.');
+  }catch(err){
+    console.error('bulletin-upload-failed', err); hideLoading();
+    await SB.storage.from(BUCKET).remove([previewPath]).catch(()=>{});
+    $('bulMsg').textContent = 'Tải lên thất bại: ' + ((err&&err.message)||'Không rõ lỗi');
+  }finally{
+    $('bulSubmit').disabled = false;
+  }
+});
+
 // ---------- Init ----------
 (async function init(){
   try{ if(sessionStorage.getItem(ADMIN_FLAG_KEY)==='1') setAdmin(true); }catch(_){}
@@ -1540,6 +1719,7 @@ $('adminLogoutBtn').addEventListener('click', async ()=>{ setAdmin(false); await
   renderSkeleton(6);
   await loadIndex();
   renderLibrary();
+  loadBulletins().then(renderBulletins).catch(()=>{});
   await attachCoverUrls();
   renderLibrary();
   const wantsAdmin = new URLSearchParams(location.search).has('admin');
