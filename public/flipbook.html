@@ -119,7 +119,7 @@
     background:var(--cat-tint,#F0ECE4); color:var(--cat-accent,var(--red)); transition:.15s;
   }
   .cat-item .ci-ico svg{ width:17px; height:17px; }
-  .cat-item .ci-label{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cat-item .ci-label{ flex:1; min-width:0; line-height:1.22; padding:3px 0; }
   .cat-item .n{
     font-size:11.5px; color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums;
     background:#F0ECE4; padding:2px 8px; border-radius:999px; min-width:24px; text-align:center;
@@ -872,18 +872,18 @@ function catCounts(){
   CATEGORIES.forEach(x => { c[x.code] = libraryIndex.filter(b=>b.documentType===x.code).length; });
   return c;
 }
-function navItems(){
-  return [{ code:'all', label:'Tất cả tài liệu', short:'Tất cả' }].concat(CATEGORIES);
-}
 function renderCategories(){
   const n = catCounts();
-  $('catList').innerHTML = navItems().map(c =>
-    `<button class="cat-item${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
-       <span>${escapeHtml(c.label)}</span><span class="n">${n[c.code]||0}</span>
+  const items = navItems();
+  $('catList').innerHTML = items.map(c =>
+    `<button class="cat-item${c.code===currentFilter?' active':''}" data-filter="${c.code}" data-cat="${c.code}" type="button">
+       <span class="ci-ico">${c.icon||''}</span>
+       <span class="ci-label">${escapeHtml(c.label)}</span>
+       <span class="n">${n[c.code]||0}</span>
      </button>`).join('');
-  $('filterGroup').innerHTML = navItems().map(c =>
-    `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
-       ${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
+  $('filterGroup').innerHTML = items.map(c =>
+    `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" data-cat="${c.code}" type="button">
+       <span class="fb-ico">${c.icon||''}</span>${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
      </button>`).join('');
 }
 
