@@ -872,18 +872,18 @@ function catCounts(){
   CATEGORIES.forEach(x => { c[x.code] = libraryIndex.filter(b=>b.documentType===x.code).length; });
   return c;
 }
-function navItems(){
-  return [{ code:'all', label:'Tất cả tài liệu', short:'Tất cả' }].concat(CATEGORIES);
-}
 function renderCategories(){
   const n = catCounts();
-  $('catList').innerHTML = navItems().map(c =>
-    `<button class="cat-item${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
-       <span>${escapeHtml(c.label)}</span><span class="n">${n[c.code]||0}</span>
+  const items = navItems();
+  $('catList').innerHTML = items.map(c =>
+    `<button class="cat-item${c.code===currentFilter?' active':''}" data-filter="${c.code}" data-cat="${c.code}" type="button">
+       <span class="ci-ico">${c.icon||''}</span>
+       <span class="ci-label">${escapeHtml(c.label)}</span>
+       <span class="n">${n[c.code]||0}</span>
      </button>`).join('');
-  $('filterGroup').innerHTML = navItems().map(c =>
-    `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" type="button">
-       ${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
+  $('filterGroup').innerHTML = items.map(c =>
+    `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" data-cat="${c.code}" type="button">
+       <span class="fb-ico">${c.icon||''}</span>${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
      </button>`).join('');
 }
 
