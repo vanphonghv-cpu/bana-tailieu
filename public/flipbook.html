@@ -1934,6 +1934,32 @@ $('bulSubmit').addEventListener('click', async ()=>{
   if(wantsAdmin && !isAdmin) $('adminLoginBtn').click();
 })();
 
+/* ---------- Mobile menu + back to top ---------- */
+(function(){
+  const sheet = document.getElementById('menuSheet');
+  const openSheet = ()=> sheet.classList.remove('hidden');
+  const closeSheet = ()=> sheet.classList.add('hidden');
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  if(menuBtn) menuBtn.addEventListener('click', openSheet);
+  sheet.addEventListener('click', e => { if(e.target === sheet) closeSheet(); });
+  sheet.querySelectorAll('[data-menu]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.menu; closeSheet();
+    if(a === 'top') window.scrollTo({top:0,behavior:'smooth'});
+    else if(a === 'library') document.getElementById('library').scrollIntoView({behavior:'smooth'});
+    else if(a === 'search') document.getElementById('headerSearchBtn').click();
+    else if(a === 'guide') document.getElementById('guideBtn').click();
+    else if(a === 'upload') document.getElementById('openUploadBtn').click();
+    else if(a === 'admin') document.getElementById('adminLoginBtn').click();
+  }));
+
+  const top = document.getElementById('toTopBtn');
+  top.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
+  const onScroll = ()=> top.classList.toggle('show', window.scrollY > 500 && document.getElementById('reader').classList.contains('hidden'));
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+
+
 </script>
 </body>
 </html>
