@@ -131,24 +131,34 @@
   .cat-item.active .ci-label{ color:var(--cat-accent,var(--red)); font-weight:700; }
   .cat-item.active .n{ background:var(--cat-accent,var(--red)); color:#fff; }
 
-  /* Mobile chips */
-  .chips{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding:2px 2px 4px; margin-bottom:18px; }
-  .chips::-webkit-scrollbar{ display:none; }
+  /* Mobile category grid — 2×2, tất cả danh mục hiển thị hết, không cuộn ngang */
+  .chips{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:0; margin-bottom:18px; }
   @media(min-width:1000px){ .chips{ display:none; } }
   .filter-btn{
-    height:44px; padding:0 14px; border-radius:999px; border:1px solid var(--line); background:#fff;
-    color:#344054; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; transition:.15s;
-    display:inline-flex; align-items:center; gap:8px; flex:0 0 auto;
+    min-height:56px; padding:10px 12px; border-radius:14px; border:1px solid var(--line); background:#fff;
+    color:#344054; font-size:13.5px; font-weight:600; cursor:pointer; transition:.15s;
+    display:flex; align-items:center; gap:10px; text-align:left; min-width:0;
+    box-shadow:0 1px 2px rgba(31,35,40,.04);
   }
-  .filter-btn .fb-ico{ width:17px; height:17px; color:var(--cat-accent,var(--red)); flex-shrink:0; }
+  .filter-btn .fb-ico{
+    width:34px; height:34px; border-radius:10px; flex-shrink:0;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--cat-tint,#F0ECE4); color:var(--cat-accent,var(--red));
+  }
+  .filter-btn .fb-ico svg{ width:17px; height:17px; }
+  .filter-btn .fb-text{ flex:1; min-width:0; line-height:1.25; }
   .filter-btn .n{
     font-size:11.5px; color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums;
-    background:#F0ECE4; padding:1px 7px; border-radius:999px; min-width:22px; text-align:center;
+    background:#F0ECE4; padding:2px 8px; border-radius:999px; min-width:24px; text-align:center; flex-shrink:0;
   }
-  .filter-btn:hover{ border-color:#D9D2C6; }
-  .filter-btn.active{ background:var(--cat-tint,#F6E7E7); border-color:var(--cat-accent,var(--red)); color:var(--cat-accent,var(--red)); }
+  .filter-btn:hover{ border-color:#D9D2C6; transform:translateY(-1px); }
+  .filter-btn.active{
+    background:var(--cat-tint,#F6E7E7);
+    border-color:color-mix(in oklab, var(--cat-accent,var(--red)) 45%, transparent);
+    color:var(--cat-accent,var(--red));
+  }
+  .filter-btn.active .fb-ico{ background:var(--cat-accent,var(--red)); color:#fff; }
   .filter-btn.active .n{ background:var(--cat-accent,var(--red)); color:#fff; }
-  .filter-btn.active .fb-ico{ color:var(--cat-accent,var(--red)); }
 
   /* ---------- Content head ---------- */
   .content-head{
