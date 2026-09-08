@@ -461,7 +461,101 @@
     .bulletin-btn{ flex:1 1 auto; text-align:center; padding:13px 14px; font-size:15px; }
     .bulletin-title{ font-size:18px; }
   }
+
+  /* ================= MOBILE OPTIMIZATION ================= */
+  .menu-btn{ display:none; }
+  .sheet-overlay{
+    position:fixed; inset:0; z-index:180; background:rgba(31,35,40,.45);
+    display:flex; align-items:flex-end; backdrop-filter:blur(2px);
+  }
+  .sheet{
+    width:100%; background:#fff; border-radius:18px 18px 0 0; padding:10px 14px calc(16px + env(safe-area-inset-bottom));
+    box-shadow:0 -12px 40px rgba(0,0,0,.22); animation:sheetUp .22s ease;
+  }
+  @keyframes sheetUp{ from{ transform:translateY(20%); opacity:.6 } to{ transform:none; opacity:1 } }
+  .sheet .grab{ width:40px; height:4px; border-radius:999px; background:#DFD9CD; margin:4px auto 12px; }
+  .sheet-item{
+    width:100%; display:flex; align-items:center; gap:12px; min-height:52px; padding:0 12px;
+    border:none; background:none; font:inherit; font-size:15.5px; font-weight:600; color:var(--ink);
+    border-radius:12px; cursor:pointer; text-align:left;
+  }
+  .sheet-item:active{ background:var(--cream); }
+  .sheet-item svg{ width:19px; height:19px; color:var(--red); flex-shrink:0; }
+  .sheet-item.muted{ font-weight:500; color:var(--muted); }
+  .sheet-item.muted svg{ color:var(--muted); }
+
+  .to-top{
+    position:fixed; right:14px; bottom:calc(16px + env(safe-area-inset-bottom)); z-index:70;
+    width:46px; height:46px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--red);
+    box-shadow:0 8px 22px rgba(31,35,40,.18); display:none; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .to-top.show{ display:flex; }
+  .to-top svg{ width:20px; height:20px; }
+
+  @media(max-width:860px){
+    body{ font-size:15px; }
+    .site-header{ height:58px; }
+    .header-inner{ padding:0 12px; gap:8px; }
+    .menu-btn{ display:inline-flex; }
+    #openUploadBtn{ display:none !important; }
+
+    .nav{ gap:6px; }
+
+    /* Intro gọn, search luôn trong tầm tay */
+    .intro-inner{ padding:16px 14px 14px; }
+    .intro h1{ font-size:21px; line-height:1.25; margin-bottom:4px; }
+    .intro p{ display:none; }
+    .intro::after{ display:none; }
+    .search-box input{ height:48px; font-size:16px; border-radius:14px; }
+
+    .page{ padding:14px 14px 90px; }
+    .layout{ gap:14px; }
+
+    /* Chips dính dưới header khi cuộn */
+    .chips{
+      position:sticky; top:58px; z-index:50; margin:0 -14px 14px; padding:10px 14px;
+      background:color-mix(in oklab, var(--cream) 92%, #fff); border-bottom:1px solid var(--line-soft);
+      backdrop-filter:blur(6px);
+    }
+    .filter-btn{ height:40px; font-size:13px; padding:0 12px; }
+
+    .content-head{ margin-bottom:12px; gap:8px; }
+    .content-head h2{ font-size:17px; }
+    select#sortSelect{ height:38px; font-size:13px; }
+  }
+
+  /* Card dạng ngang gọn cho điện thoại */
+  @media(max-width:560px){
+    .grid{ gap:12px; }
+    .doc{
+      display:grid; grid-template-columns:110px minmax(0,1fr);
+      grid-template-areas:"cover body" "cover actions"; border-radius:14px;
+    }
+    .doc::before{ width:4px; height:auto; right:auto; bottom:0; }
+    .doc-cover{
+      grid-area:cover; align-self:stretch; width:auto; aspect-ratio:auto; min-height:150px;
+      border-bottom:none; border-right:1px solid var(--line-soft); margin-left:4px;
+    }
+    .doc-body{ grid-area:body; }
+    .doc-actions{ grid-area:actions; }
+
+    .doc-ext{ top:6px; right:6px; padding:2px 6px; font-size:9.5px; }
+    .doc-star{ bottom:6px; left:6px; padding:2px 7px; font-size:10px; }
+    .doc-star span{ display:none; }
+    .doc-body{ padding:11px 12px 0; }
+    .doc-cat{ font-size:9.5px; padding:2px 7px; margin-bottom:6px; }
+    .doc-title{ font-size:15px; margin-bottom:4px; }
+    .doc-desc{ display:none; }
+    .doc-meta{ font-size:11.5px; gap:2px 8px; }
+    .doc-actions{ padding:10px 12px 12px; gap:6px; }
+    .doc-cta{ height:38px; font-size:13px; }
+    .doc-act{ width:38px; height:38px; }
+    .doc-inner-wrap{ display:flex; flex-direction:column; flex:1; min-width:0; }
+    .empty{ padding:38px 16px; }
+    .sk-card .sk-cover{ aspect-ratio:1/0.6; }
+  }
 </style>
+
 </head>
 <body>
 
@@ -482,7 +576,11 @@
       <button class="icon-btn keep" id="headerSearchBtn" type="button" aria-label="Tìm kiếm tài liệu">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       </button>
+      <button class="icon-btn keep menu-btn" id="mobileMenuBtn" type="button" aria-label="Mở menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
       <span class="admin-badge">Quản trị</span>
+
       <button class="btn sm primary admin-only" id="openUploadBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         Tải lên
@@ -539,6 +637,42 @@
     </div>
   </div>
 </main>
+
+<!-- Menu di động -->
+<div class="sheet-overlay hidden" id="menuSheet">
+  <div class="sheet">
+    <div class="grab"></div>
+    <button class="sheet-item" type="button" data-menu="top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+      Trang chủ
+    </button>
+    <button class="sheet-item" type="button" data-menu="library">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg>
+      Tài liệu
+    </button>
+    <button class="sheet-item" type="button" data-menu="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      Tìm kiếm tài liệu
+    </button>
+    <button class="sheet-item" type="button" data-menu="guide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      Hướng dẫn sử dụng
+    </button>
+    <button class="sheet-item admin-only" type="button" data-menu="upload">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Tải tài liệu lên
+    </button>
+    <button class="sheet-item muted" type="button" data-menu="admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.4-3 7.5-7 9-4-1.5-7-4.6-7-9V6z"/></svg>
+      Quản trị hệ thống
+    </button>
+  </div>
+</div>
+
+<button class="to-top" id="toTopBtn" type="button" aria-label="Lên đầu trang">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
+
 
 <footer class="site-footer">
   <div class="footer-inner">
@@ -1801,6 +1935,32 @@ $('bulSubmit').addEventListener('click', async ()=>{
   const wantsAdmin = new URLSearchParams(location.search).has('admin');
   if(wantsAdmin && !isAdmin) $('adminLoginBtn').click();
 })();
+
+/* ---------- Mobile menu + back to top ---------- */
+(function(){
+  const sheet = document.getElementById('menuSheet');
+  const openSheet = ()=> sheet.classList.remove('hidden');
+  const closeSheet = ()=> sheet.classList.add('hidden');
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  if(menuBtn) menuBtn.addEventListener('click', openSheet);
+  sheet.addEventListener('click', e => { if(e.target === sheet) closeSheet(); });
+  sheet.querySelectorAll('[data-menu]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.menu; closeSheet();
+    if(a === 'top') window.scrollTo({top:0,behavior:'smooth'});
+    else if(a === 'library') document.getElementById('library').scrollIntoView({behavior:'smooth'});
+    else if(a === 'search') document.getElementById('headerSearchBtn').click();
+    else if(a === 'guide') document.getElementById('guideBtn').click();
+    else if(a === 'upload') document.getElementById('openUploadBtn').click();
+    else if(a === 'admin') document.getElementById('adminLoginBtn').click();
+  }));
+
+  const top = document.getElementById('toTopBtn');
+  top.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
+  const onScroll = ()=> top.classList.toggle('show', window.scrollY > 500 && document.getElementById('reader').classList.contains('hidden'));
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+
 
 </script>
 </body>
