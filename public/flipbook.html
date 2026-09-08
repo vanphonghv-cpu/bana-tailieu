@@ -525,12 +525,18 @@
   /* Card dạng ngang gọn cho điện thoại */
   @media(max-width:560px){
     .grid{ gap:12px; }
-    .doc{ flex-direction:row; align-items:stretch; border-radius:14px; }
+    .doc{
+      display:grid; grid-template-columns:110px minmax(0,1fr);
+      grid-template-areas:"cover body" "cover actions"; border-radius:14px;
+    }
     .doc::before{ width:4px; height:auto; right:auto; bottom:0; }
     .doc-cover{
-      width:104px; flex:0 0 104px; aspect-ratio:auto; border-bottom:none;
-      border-right:1px solid var(--line-soft); margin-left:4px;
+      grid-area:cover; align-self:stretch; width:auto; aspect-ratio:auto; min-height:150px;
+      border-bottom:none; border-right:1px solid var(--line-soft); margin-left:4px;
     }
+    .doc-body{ grid-area:body; }
+    .doc-actions{ grid-area:actions; }
+
     .doc-ext{ top:6px; right:6px; padding:2px 6px; font-size:9.5px; }
     .doc-star{ bottom:6px; left:6px; padding:2px 7px; font-size:10px; }
     .doc-star span{ display:none; }
