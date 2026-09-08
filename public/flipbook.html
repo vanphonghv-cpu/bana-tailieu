@@ -1027,7 +1027,7 @@ function renderCategories(){
      </button>`).join('');
   $('filterGroup').innerHTML = items.map(c =>
     `<button class="filter-btn${c.code===currentFilter?' active':''}" data-filter="${c.code}" data-cat="${c.code}" type="button">
-       <span class="fb-ico">${c.icon||''}</span>${escapeHtml(c.short)}<span class="n">${n[c.code]||0}</span>
+       <span class="fb-ico">${c.icon||''}</span><span class="fb-text">${escapeHtml(c.label)}</span><span class="n">${n[c.code]||0}</span>
      </button>`).join('');
 }
 
