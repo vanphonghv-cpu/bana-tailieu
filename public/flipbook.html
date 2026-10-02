@@ -1640,7 +1640,7 @@ readerStage.addEventListener('pointerdown', e => {
   }
   if(zoomState.scale > 1){ panStart={x:e.clientX,y:e.clientY,panX:zoomState.panX,panY:zoomState.panY}; return; }
   if(!currentPdfDoc) return;
-  drag = { startX:e.clientX, direction:null, width:$('bookFrame').clientWidth };
+  drag = { startX:e.clientX, startY:e.clientY, t0:performance.now(), lastX:e.clientX, lastT:performance.now(), vx:0, axis:null, direction:null, width:Math.min($('bookFrame').clientWidth, window.innerWidth) };
 });
 readerStage.addEventListener('pointermove', e => {
   if(!activePointers.has(e.pointerId)) return;
@@ -1660,26 +1660,45 @@ readerStage.addEventListener('pointermove', e => {
     return;
   }
   if(!drag) return;
-  const dx = e.clientX - drag.startX;
+  const now = performance.now();
+  const dtm = Math.max(1, now - drag.lastT);
+  drag.vx = 0.7*((e.clientX - drag.lastX)/dtm) + 0.3*drag.vx;
+  drag.lastX = e.clientX; drag.lastT = now;
+  const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
+  if(!drag.axis){
+    if(Math.hypot(dx,dy) < 6) return;
+    // Horizontal-friendly axis lock: diagonal swipes count as horizontal
+    drag.axis = Math.abs(dx) >= Math.abs(dy)*0.6 ? 'x' : 'y';
+  }
+  if(drag.axis==='y') return;
   if(!drag.direction){
-    if(Math.abs(dx)<8) return;
     const dir = dx<0?'next':'prev';
     if(!canGo(dir)){ drag.direction='blocked'; return; }
     drag.direction=dir; beginDragVisuals(dir);
   }
   if(drag.direction==='blocked') return;
-  applyDragAngle(drag.direction, Math.abs(dx)/drag.width);
+  // page follows finger slightly faster for a light feel
+  applyDragAngle(drag.direction, Math.min(1, Math.abs(dx)*1.15/drag.width));
 });
 function endDrag(e){
   activePointers.delete(e.pointerId);
   if(activePointers.size<2) pinchStart=null;
   if(activePointers.size===0) panStart=null;
   if(!drag) return;
-  if(drag.direction && drag.direction!=='blocked'){
-    const dx = Math.abs((e.clientX||0)-drag.startX);
-    settleDrag(drag.direction, dx/drag.width > 0.42);
+  const d = drag; drag=null;
+  const dx = (e.clientX||d.lastX) - d.startX, dy = (e.clientY||d.startY) - d.startY;
+  const dt = Math.max(1, performance.now() - d.t0);
+  if(d.axis==='x' && d.direction && d.direction!=='blocked'){
+    const dist = Math.abs(dx)/d.width;
+    const flick = Math.abs(d.vx) > 0.3 && Math.abs(dx) > 25 && Math.sign(d.vx) === Math.sign(dx);
+    settleDrag(d.direction, dist > 0.2 || flick);
+  } else if(d.axis==='y' && e.type==='pointerup'){
+    // Vertical swipe also turns pages: up = next, down = previous
+    const vy = Math.abs(dy)/dt;
+    if(Math.abs(dy) > 50 && (vy > 0.25 || Math.abs(dy) > 120)){
+      programmaticFlip(dy<0 ? 'next' : 'prev');
+    }
   }
-  drag=null;
 }
 readerStage.addEventListener('pointerup', endDrag);
 readerStage.addEventListener('pointercancel', endDrag);
